@@ -30,9 +30,9 @@ public class ServletManagerImpl implements ServletManager {
     }
 
     @Override
-    public Observable<Void> start(Map<String, Class<? extends Servlet>> config) {
+    public Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config) {
         return Observable.defer(() -> {
-            Server server = new Server(8080);
+            Server server = new Server(port);
             Context jettyContext = new Context();
             return Observable.from(config.keySet()).zipWith(Observable.from(config.values()),
                     (path, servletClass) -> {
@@ -46,6 +46,7 @@ public class ServletManagerImpl implements ServletManager {
                         server.setHandler(jettyContext);
                         try {
                             server.start();
+                            log.info("Server running on port {}", port);
                             server.join();
                             return Observable.empty();
                         } catch (Throwable throwable) {
