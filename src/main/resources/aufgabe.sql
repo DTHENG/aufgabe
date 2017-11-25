@@ -1,4 +1,4 @@
-CREATE DATABASE aufgabe;
+CREATE DATABASE aufgabe DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;
 
 USE aufgabe;
 
