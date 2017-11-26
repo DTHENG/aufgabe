@@ -6,7 +6,6 @@ import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.io.event.ButtonPressedEvent;
 import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.taskentry.dto.TaskEntryCreateRequest;
-import com.dtheng.aufgabe.taskentry.model.TaskEntry;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
@@ -56,11 +55,11 @@ public class TaskEntryService {
             @Override
             public void accept(ButtonPressedEvent buttonPressedEvent) {
                 buttonManager.get(buttonPressedEvent.getButtonId())
-                        .flatMap(button -> taskEntryManager.create(new TaskEntryCreateRequest(button.getTaskId())))
-                        .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId())
-                            .doOnNext(aggregateTask -> log.info("Created new task entry {} {}", taskEntry.getId(), aggregateTask.getTask().getDescription())))
-                        .subscribe(Void -> {},
-                                error -> log.error(error.toString()));
+                    .flatMap(button -> taskEntryManager.create(new TaskEntryCreateRequest(button.getTaskId())))
+                    .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId())
+                        .doOnNext(aggregateTask -> log.info("Created new task entry {} {}", taskEntry.getId(), aggregateTask.getTask().getDescription())))
+                    .subscribe(Void -> {},
+                        error -> log.error(error.toString()));
             }
         }
     }

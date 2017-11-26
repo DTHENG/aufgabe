@@ -36,7 +36,7 @@ public class TaskManagerImpl implements TaskManager {
     @Override
     public Observable<AggregateTask> get(String id) {
         return taskDAO.getTask(id)
-                .flatMap(this::aggregate);
+            .flatMap(this::aggregate);
     }
 
     @Override
@@ -46,14 +46,14 @@ public class TaskManagerImpl implements TaskManager {
         task.setCreatedAt(new Date());
         task.setDescription(request.getDescription());
         return taskDAO.createTask(task)
-                .flatMap(this::aggregate);
+            .flatMap(this::aggregate);
     }
 
     @Override
     public Observable<AggregateTasksResponse> get(TasksRequest request) {
         return taskDAO.getTasks(request)
-                .flatMap(tasksResponse -> Observable.from(tasksResponse.getTasks())
-                    .concatMap(this::aggregate)
+            .flatMap(tasksResponse -> Observable.from(tasksResponse.getTasks())
+                .concatMap(this::aggregate)
                 .toList()
                 .map(aggregateTasks -> new AggregateTasksResponse(tasksResponse.getOffset(), tasksResponse.getLimit(), tasksResponse.getTotal(), aggregateTasks)));
     }
@@ -64,10 +64,10 @@ public class TaskManagerImpl implements TaskManager {
         buttonsRequest.setLimit(10);
         buttonsRequest.setTaskId(Optional.of(task.getId()));
         return Observable.zip(
-                buttonManager.get(buttonsRequest)
-                    .map(ButtonsResponse::getButtons),
-                taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId())))
-                    .map(EntriesResponse::getEntries),
-                (buttons, entries) -> new AggregateTask(task, entries, buttons));
+            buttonManager.get(buttonsRequest)
+                .map(ButtonsResponse::getButtons),
+            taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId())))
+                .map(EntriesResponse::getEntries),
+            (buttons, entries) -> new AggregateTask(task, entries, buttons));
     }
 }

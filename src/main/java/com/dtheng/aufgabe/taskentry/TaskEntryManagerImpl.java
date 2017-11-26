@@ -17,29 +17,29 @@ import java.util.Date;
 @Slf4j
 public class TaskEntryManagerImpl implements TaskEntryManager {
 
-	private TaskEntryDAO taskEntryDAO;
+    private TaskEntryDAO taskEntryDAO;
 
-	@Inject
-	public TaskEntryManagerImpl(TaskEntryDAO taskEntryDAO) {
-		this.taskEntryDAO = taskEntryDAO;
-	}
+    @Inject
+    public TaskEntryManagerImpl(TaskEntryDAO taskEntryDAO) {
+        this.taskEntryDAO = taskEntryDAO;
+    }
 
-	@Override
-	public Observable<TaskEntry> get(String id) {
-		return taskEntryDAO.getTaskEntry(id);
-	}
+    @Override
+    public Observable<TaskEntry> get(String id) {
+        return taskEntryDAO.getTaskEntry(id);
+    }
 
-	@Override
-	public Observable<TaskEntry> create(TaskEntryCreateRequest request) {
-		TaskEntry entry = new TaskEntry();
-		entry.setId("entry-"+ new RandomString(8).nextString());
-		entry.setCreatedAt(new Date());
-		entry.setTaskId(request.getTaskId());
-		return taskEntryDAO.createTaskEntry(entry);
-	}
+    @Override
+    public Observable<TaskEntry> create(TaskEntryCreateRequest request) {
+        TaskEntry entry = new TaskEntry();
+        entry.setId("entry-"+ new RandomString(8).nextString());
+        entry.setCreatedAt(new Date());
+        entry.setTaskId(request.getTaskId());
+        return taskEntryDAO.createTaskEntry(entry);
+    }
 
-	@Override
-	public Observable<EntriesResponse> get(EntriesRequest request) {
-		return taskEntryDAO.getEntries(request);
-	}
+    @Override
+    public Observable<EntriesResponse> get(EntriesRequest request) {
+        return taskEntryDAO.getEntries(request);
+    }
 }

@@ -23,8 +23,8 @@ public class RaspberryPiManagerImpl implements RaspberryPiManager {
     private GpioController controller = null;
     private Map<String, GpioPinDigitalInput> digitalInputMap = new HashMap<>();
 
-	private ButtonManager buttonManager;
-	private AufgabeContext aufgabeContext;
+    private ButtonManager buttonManager;
+    private AufgabeContext aufgabeContext;
     private DeviceManager deviceManager;
 
     @Inject
@@ -35,39 +35,39 @@ public class RaspberryPiManagerImpl implements RaspberryPiManager {
     }
 
     @Override
-	public Observable<Void> startUp() {
+    public Observable<Void> startUp() {
         log.info("Configuring Raspberry Pi...");
         return Observable.zip(
-                deviceManager.getDeviceId(),
-                deviceManager.getDeviceType(),
-                (deviceId, deviceType) -> {
-            switch (deviceType) {
-                case RASPBERRY_PI:
-                    controller = GpioFactory.getInstance();
-                    ButtonsRequest request = new ButtonsRequest();
-                    request.setOffset(0);
-                    request.setLimit(10);
-                    request.setDevice(Optional.of(deviceId));
-                    return buttonManager.get(request)
+            deviceManager.getDeviceId(),
+            deviceManager.getDeviceType(),
+            (deviceId, deviceType) -> {
+                switch (deviceType) {
+                    case RASPBERRY_PI:
+                        controller = GpioFactory.getInstance();
+                        ButtonsRequest request = new ButtonsRequest();
+                        request.setOffset(0);
+                        request.setLimit(10);
+                        request.setDevice(Optional.of(deviceId));
+                        return buttonManager.get(request)
                             .flatMap(resp -> Observable.from(resp.getButtons())
-                                    .filter(button -> !digitalInputMap.containsKey(button.getIoPin()))
-                                    .flatMap(this::provisionDigitalInputPin)
-                                    .doOnNext(button -> {
-                                        GpioPinDigitalInput digitalInput = digitalInputMap.get(button.getIoPin());
-                                        AufgabePinListenerDigital listener = aufgabeContext.getInjector().getInstance(AufgabePinListenerDigital.class);
-                                        listener.setButtonId(button.getId());
-                                        digitalInput.addListener(listener);
-                                    })
-                                    .toList());
-                default:
-                    log.info("Not a Raspberry Pi :nothingtodohere:");
-                    return Observable.empty();
-            }
-        })
-        .flatMap(o -> o)
-        .doOnNext(Void -> log.info("Raspberry Pi Configured!"))
-        .ignoreElements().cast(Void.class);
-	}
+                                .filter(button -> !digitalInputMap.containsKey(button.getIoPin()))
+                                .flatMap(this::provisionDigitalInputPin)
+                                .doOnNext(button -> {
+                                    GpioPinDigitalInput digitalInput = digitalInputMap.get(button.getIoPin());
+                                    AufgabePinListenerDigital listener = aufgabeContext.getInjector().getInstance(AufgabePinListenerDigital.class);
+                                    listener.setButtonId(button.getId());
+                                    digitalInput.addListener(listener);
+                                })
+                                .toList());
+                    default:
+                        log.info("Not a Raspberry Pi :nothingtodohere:");
+                        return Observable.empty();
+                }
+            })
+            .flatMap(o -> o)
+            .doOnNext(Void -> log.info("Raspberry Pi Configured!"))
+            .ignoreElements().cast(Void.class);
+    }
 
     private Observable<Button> provisionDigitalInputPin(Button button) {
         switch (button.getIoPin()) {

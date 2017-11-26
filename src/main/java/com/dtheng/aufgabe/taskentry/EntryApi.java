@@ -5,7 +5,6 @@ import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.RequestUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
-import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -34,19 +33,19 @@ public class EntryApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             RequestUtil.getBody(req, EntriesRequest.class)
-                    .defaultIfEmpty(null)
-                    .flatMap(request -> {
-                        if (request == null)
-                            return Observable.error(new AufgabeException("Invalid request"));
-                        return taskEntryManager.get(request);
-                    })
-                    .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .defaultIfEmpty(null)
+                .flatMap(request -> {
+                    if (request == null)
+                        return Observable.error(new AufgabeException("Invalid request"));
+                    return taskEntryManager.get(request);
+                })
+                .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 
@@ -62,13 +61,13 @@ public class EntryApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             taskEntryManager.get(req.getPathInfo().substring(1, req.getPathInfo().length()))
-                    .flatMap(taskEntry -> ResponseUtil.set(resp, taskEntry, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .flatMap(taskEntry -> ResponseUtil.set(resp, taskEntry, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 }

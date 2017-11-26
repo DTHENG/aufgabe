@@ -40,26 +40,26 @@ public class ConfigApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             deviceManager.getDeviceId()
-                    .flatMap(deviceId -> {
-                        ButtonsRequest buttonsRequest = new ButtonsRequest();
-                        buttonsRequest.setLimit(100);
-                        buttonsRequest.setDevice(Optional.of(deviceId));
-                        buttonsRequest.setOrderBy(Optional.of("ioPin"));
-                        buttonsRequest.setOrderDirection(Optional.of("asc"));
-                        return buttonManager.get(buttonsRequest);
-                    })
-                    .map(ButtonsResponse::getButtons)
-                    .flatMap(Observable::from)
-                    .concatMap(button -> taskManager.get(button.getTaskId())
-                        .map(task -> task.getTask().getDescription()))
-                    .toList()
-                    .flatMap(tasks -> ResponseUtil.set(resp, tasks, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .flatMap(deviceId -> {
+                    ButtonsRequest buttonsRequest = new ButtonsRequest();
+                    buttonsRequest.setLimit(100);
+                    buttonsRequest.setDevice(Optional.of(deviceId));
+                    buttonsRequest.setOrderBy(Optional.of("ioPin"));
+                    buttonsRequest.setOrderDirection(Optional.of("asc"));
+                    return buttonManager.get(buttonsRequest);
+                })
+                .map(ButtonsResponse::getButtons)
+                .flatMap(Observable::from)
+                .concatMap(button -> taskManager.get(button.getTaskId())
+                    .map(task -> task.getTask().getDescription()))
+                .toList()
+                .flatMap(tasks -> ResponseUtil.set(resp, tasks, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 }

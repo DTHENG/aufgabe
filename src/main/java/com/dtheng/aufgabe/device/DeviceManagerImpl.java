@@ -23,9 +23,9 @@ public class DeviceManagerImpl implements DeviceManager {
     public Observable<Void> startUp() {
         log.info("Starting device manager...");
         return loadId()
-                .flatMap(Void -> loadType())
-                .doOnNext(Void -> log.info("Device manager setup! id: {}, type: {}", this.id, this.type))
-                .ignoreElements().cast(Void.class);
+            .flatMap(Void -> loadType())
+            .doOnNext(Void -> log.info("Device manager setup! id: {}, type: {}", this.id, this.type))
+            .ignoreElements().cast(Void.class);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class DeviceManagerImpl implements DeviceManager {
                 return Observable.error(throwable);
             }
         })
-        .doOnNext(id -> this.id = id);
+            .doOnNext(id -> this.id = id);
     }
 
     private Observable<DeviceType> loadType() {
@@ -79,7 +79,6 @@ public class DeviceManagerImpl implements DeviceManager {
                 return Observable.error(throwable);
             }
         })
-        .doOnNext(type -> this.type = type);
+            .doOnNext(type -> this.type = type);
     }
-
 }

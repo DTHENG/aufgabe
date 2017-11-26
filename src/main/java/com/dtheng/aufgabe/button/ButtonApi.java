@@ -35,19 +35,19 @@ public class ButtonApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             RequestUtil.getBody(req, ButtonsRequest.class)
-                    .defaultIfEmpty(null)
-                    .flatMap(request -> {
-                        if (request == null)
-                            return Observable.error(new AufgabeException("Invalid request"));
-                        return buttonManager.get(request);
-                    })
-                    .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .defaultIfEmpty(null)
+                .flatMap(request -> {
+                    if (request == null)
+                        return Observable.error(new AufgabeException("Invalid request"));
+                    return buttonManager.get(request);
+                })
+                .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 
@@ -63,13 +63,13 @@ public class ButtonApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             buttonManager.get(req.getPathInfo().substring(1, req.getPathInfo().length()))
-                    .flatMap(taskEntry -> ResponseUtil.set(resp, taskEntry, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .flatMap(taskEntry -> ResponseUtil.set(resp, taskEntry, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 
@@ -85,19 +85,19 @@ public class ButtonApi {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             RequestUtil.getBody(req, ButtonCreateRequest.class)
-                    .defaultIfEmpty(null)
-                    .flatMap(request -> {
-                        if (request == null)
-                            return Observable.error(new AufgabeException("Invalid request"));
-                        return buttonManager.create(request);
-                    })
-                    .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .defaultIfEmpty(null)
+                .flatMap(request -> {
+                    if (request == null)
+                        return Observable.error(new AufgabeException("Invalid request"));
+                    return buttonManager.create(request);
+                })
+                .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 
@@ -113,13 +113,13 @@ public class ButtonApi {
         @Override
         protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             buttonManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length()))
-                    .flatMap(button -> ResponseUtil.set(resp, button, 200))
-                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                    .subscribe(Void -> {},
-                            error -> {
-                                log.error(error.toString());
-                                error.printStackTrace();
-                            });
+                .flatMap(button -> ResponseUtil.set(resp, button, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {},
+                    error -> {
+                        log.error(error.toString());
+                        error.printStackTrace();
+                    });
         }
     }
 }
