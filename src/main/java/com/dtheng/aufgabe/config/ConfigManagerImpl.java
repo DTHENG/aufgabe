@@ -18,37 +18,37 @@ import java.util.Optional;
 @Singleton
 public class ConfigManagerImpl implements ConfigManager {
 
-	private Optional<Configuration> configuration = Optional.empty();
+    private Optional<Configuration> configuration = Optional.empty();
 
-	private FileManager fileManager;
+    private FileManager fileManager;
 
-	@Inject
-	public ConfigManagerImpl(FileManager fileManager) {
-		this.fileManager = fileManager;
-	}
+    @Inject
+    public ConfigManagerImpl(FileManager fileManager) {
+        this.fileManager = fileManager;
+    }
 
-	@Override
-	public Observable<Void> load(Optional<String> customConfigFileName) {
-		log.info("Loading Configuration...");
-		String filename = ! customConfigFileName.isPresent() ? "configuration-default.json" : customConfigFileName.get();
-		return fileManager.read(filename)
-				.flatMap(raw -> {
-					ObjectMapper objectMapper = new ObjectMapper();
-					try {
-						return Observable.just(objectMapper.readValue(raw, Configuration.class));
-					} catch (IOException e) {
-						return Observable.error(e);
-					}
-				})
-				.doOnNext(configuration -> this.configuration = Optional.of(configuration))
-				.doOnNext(configuration -> log.info("Configuration loaded! (/src/main/resources/{})", filename))
-				.ignoreElements().cast(Void.class);
-	}
+    @Override
+    public Observable<Void> load(Optional<String> customConfigFileName) {
+        log.info("Loading Configuration...");
+        String filename = ! customConfigFileName.isPresent() ? "configuration-default.json" : customConfigFileName.get();
+        return fileManager.read(filename)
+            .flatMap(raw -> {
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    return Observable.just(objectMapper.readValue(raw, Configuration.class));
+                } catch (IOException e) {
+                    return Observable.error(e);
+                }
+            })
+            .doOnNext(configuration -> this.configuration = Optional.of(configuration))
+            .doOnNext(configuration -> log.info("Configuration loaded! (/src/main/resources/{})", filename))
+            .ignoreElements().cast(Void.class);
+    }
 
-	@Override
-	public Observable<Configuration> getConfig() {
-		if ( ! configuration.isPresent())
-			return Observable.error(new RuntimeException("ConfigManager.load not called!"));
-		return Observable.just(configuration.get());
-	}
+    @Override
+    public Observable<Configuration> getConfig() {
+        if ( ! configuration.isPresent())
+            return Observable.error(new RuntimeException("ConfigManager.load not called!"));
+        return Observable.just(configuration.get());
+    }
 }

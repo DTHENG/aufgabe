@@ -1,18 +1,23 @@
 package com.dtheng.aufgabe;
 
+import com.dtheng.aufgabe.button.ButtonApi;
+import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.db.JooqManager;
+import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
 import com.dtheng.aufgabe.io.RaspberryPiManager;
-import com.google.common.collect.ImmutableMap;
+import com.dtheng.aufgabe.stats.StatsApi;
+import com.dtheng.aufgabe.task.TaskApi;
+import com.dtheng.aufgabe.taskentry.EntryApi;
+import com.dtheng.aufgabe.taskentry.TaskEntryService;
 import com.google.inject.*;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Optional;
+import javax.servlet.Servlet;
+import java.util.*;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -31,46 +36,69 @@ public class Aufgabe {
         StartUp startUp = context.getInjector().getInstance(StartUp.class);
 
         startUp.start(customConfigFileName)
-                .subscribe(Void -> {},
-                        error -> log.error(error.toString()));
+            .subscribe(Void -> {},
+                error -> {
+                    error.printStackTrace();
+                    log.error(error.toString());
+                });
     }
 
     private static class StartUp {
 
         private ServletManager servletManager;
-		private ConfigManager configManager;
-		private JooqManager jooqManager;
-		private RaspberryPiManager raspberryPiManager;
+        private ConfigManager configManager;
+        private JooqManager jooqManager;
+        private RaspberryPiManager raspberryPiManager;
+        private TaskEntryService taskEntryService;
+        private DeviceManager deviceManager;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager, TaskEntryService taskEntryService, DeviceManager deviceManager) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.jooqManager = jooqManager;
             this.raspberryPiManager = raspberryPiManager;
+            this.taskEntryService = taskEntryService;
+            this.deviceManager = deviceManager;
         }
 
-        public Observable<Void> start(Optional<String> customConfigFileName) {
-			return configManager.load(customConfigFileName)
-					.defaultIfEmpty(null)
-					.flatMap(Void -> configManager.getConfig())
-					.flatMap(config ->
+        Observable<Void> start(Optional<String> customConfigFileName) {
+            return configManager.load(customConfigFileName)
+                .defaultIfEmpty(null)
+                .flatMap(Void -> configManager.getConfig())
+                .flatMap(config -> {
 
-						Observable.concat(Arrays.asList(
+                    Map<String, Class<? extends Servlet>> routes = new HashMap<>();
 
-							// Create database connection
-							jooqManager.startUp(),
+                    routes.put("/", AufgabeServlet.class);
+                    routes.put("/entries", EntryApi.Entries.class);
+                    routes.put("/entry/*", EntryApi.GetEntry.class);
+                    routes.put("/task", TaskApi.CreateTask.class);
+                    routes.put("/tasks", TaskApi.Tasks.class);
+                    routes.put("/taskFromId/*", TaskApi.GetTask.class);
+                    routes.put("/button", ButtonApi.CreateButton.class);
+                    routes.put("/buttons", ButtonApi.Buttons.class);
+                    routes.put("/buttonFromId/*", ButtonApi.GetButton.class);
+                    routes.put("/removeButton/*", ButtonApi.RemoveButton.class);
+                    routes.put("/config", ConfigApi.ButtonConfig.class);
+                    routes.put("/stats", StatsApi.Default.class);
 
-							// Configure IO pins on raspberry pi
-							raspberryPiManager.startUp(),
+                    return Observable.concat(Arrays.asList(
 
-							// Start the http server
-							servletManager.start(config.getHttpPort(), new HashMap<>(ImmutableMap.of(
-									"/", AufgabeServlet.class,
-									"/entries", AufgabeApi.Entries.class,
-									"/entry/*", AufgabeApi.GetEntry.class
-							))))
-						));
+                        deviceManager.startUp(),
+
+                        // Create database connection
+                        jooqManager.startUp(),
+
+                        // Configure IO pins on raspberry pi
+                        raspberryPiManager.startUp(),
+
+                        taskEntryService.startUp(),
+
+                        // Start the http server
+                        servletManager.start(config.getHttpPort(), routes))
+                    );
+                });
         }
     }
 }

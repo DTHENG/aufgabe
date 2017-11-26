@@ -1,6 +1,6 @@
-package com.dtheng.aufgabe.db.dto;
+package com.dtheng.aufgabe.taskentry.dto;
 
-import com.dtheng.aufgabe.db.model.TaskEntry;
+import com.dtheng.aufgabe.taskentry.model.TaskEntry;
 import lombok.*;
 
 import java.util.List;

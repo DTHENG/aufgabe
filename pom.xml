@@ -25,6 +25,8 @@
         </license>
     </licenses>
     <repositories>
+
+        <!-- For dependency: com.pi4j -->
         <repository>
             <id>oss-snapshots-repo</id>
             <name>Sonatype OSS Maven Repository</name>
@@ -34,10 +36,16 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
+
+        <!-- For dependency: com.github.Fylipp -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
     <dependencies>
 
-        <!-- Raspberry Pi IO -->
+        <!-- Raspberry Pi -->
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-core</artifactId>
@@ -54,6 +62,17 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.18</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>21.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.1.0</version>
         </dependency>
 
         <!-- JSON -->
@@ -100,11 +119,11 @@
             <version>1.7.13</version>
         </dependency>
 
-
+        <!-- Events -->
         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.1.0</version>
+            <groupId>com.github.Fylipp</groupId>
+            <artifactId>easy-events</artifactId>
+            <version>v1.1.0</version>
         </dependency>
 
         <!-- Networking -->
@@ -193,5 +212,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
