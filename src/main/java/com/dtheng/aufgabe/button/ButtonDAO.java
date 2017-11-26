@@ -21,7 +21,7 @@ import static org.jooq.impl.DSL.*;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class ButtonDAO {
+class ButtonDAO {
 
     private static final Table<Record> TABLE = table("button");
 
@@ -32,7 +32,7 @@ public class ButtonDAO {
         this.jooqManager = jooqManager;
     }
 
-    public Observable<Button> createButton(Button button) {
+    Observable<Button> createButton(Button button) {
         return jooqManager.getConnection()
                 .doOnNext(connection -> connection.insertInto(TABLE)
                         .set(field("id"), button.getId())
@@ -43,7 +43,7 @@ public class ButtonDAO {
                 .flatMap(Void -> getButton(button.getId()));
     }
 
-    public Observable<Button> getButton(String id) {
+    Observable<Button> getButton(String id) {
         return jooqManager.getConnection()
                 .flatMap(connection -> Observable.from(connection.select()
                         .from(TABLE)
@@ -60,7 +60,7 @@ public class ButtonDAO {
                 .flatMap(this::toButton);
     }
 
-    public Observable<Void> removeButton(String id) {
+    Observable<Void> removeButton(String id) {
         return jooqManager.getConnection()
                 .flatMap(connection -> {
                     connection.update(TABLE)
@@ -71,7 +71,7 @@ public class ButtonDAO {
                 });
     }
 
-    public Observable<ButtonsResponse> getButtons(ButtonsRequest request) {
+    Observable<ButtonsResponse> getButtons(ButtonsRequest request) {
         return jooqManager.getConnection()
                 .flatMap(connection -> {
 

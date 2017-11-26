@@ -3,5 +3,6 @@
   "db_user": "root",
   "db_password": "abcd1234",
   "db_port": 3306,
-  "db_name": "aufgabe"
+  "db_name": "aufgabe",
+  "time_zone": "America/Los_Angeles"
 }

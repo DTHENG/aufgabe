@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.http.api;
+package com.dtheng.aufgabe.config;
 
 import com.dtheng.aufgabe.button.ButtonManager;
 import com.dtheng.aufgabe.button.dto.ButtonsRequest;
@@ -60,7 +60,6 @@ public class ConfigApi {
                                 log.error(error.toString());
                                 error.printStackTrace();
                             });
-
         }
     }
 }

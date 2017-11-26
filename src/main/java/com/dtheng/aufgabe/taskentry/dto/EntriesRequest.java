@@ -14,7 +14,7 @@ import java.util.Optional;
 @NoArgsConstructor
 public class EntriesRequest {
 
-	private int offset;
-	private int limit;
+	private int offset = 0;
+	private int limit = 10;
 	private Optional<String> taskId = Optional.empty();
 }

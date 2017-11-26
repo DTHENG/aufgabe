@@ -20,4 +20,6 @@ public class Configuration {
 	@JsonProperty("db_port") private int databasePort;
 	@JsonProperty("db_name") private String databaseName;
 
+	@JsonProperty("time_zone") private String timeZone;
+
 }

@@ -20,7 +20,7 @@ import static org.jooq.impl.DSL.*;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class TaskDAO {
+class TaskDAO {
 
     private static final Table<Record> TABLE = table("task");
 
@@ -31,7 +31,7 @@ public class TaskDAO {
         this.jooqManager = jooqManager;
     }
 
-    public Observable<Task> createTask(Task task) {
+    Observable<Task> createTask(Task task) {
         return jooqManager.getConnection()
                 .doOnNext(connection -> connection.insertInto(TABLE)
                         .set(field("id"), task.getId())
@@ -40,7 +40,7 @@ public class TaskDAO {
                 .flatMap(Void -> getTask(task.getId()));
     }
 
-    public Observable<Task> getTask(String id) {
+    Observable<Task> getTask(String id) {
         return jooqManager.getConnection()
                 .flatMap(connection -> Observable.from(connection.select()
                         .from(TABLE)
@@ -57,7 +57,7 @@ public class TaskDAO {
                 .flatMap(this::toTask);
     }
 
-    public Observable<TasksResponse> getTasks(TasksRequest request) {
+    Observable<TasksResponse> getTasks(TasksRequest request) {
         return jooqManager.getConnection()
                 .flatMap(connection -> {
                     int total = connection.selectCount()

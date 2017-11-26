@@ -24,7 +24,7 @@ import static org.jooq.impl.DSL.table;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class TaskEntryDAO {
+class TaskEntryDAO {
 
 	private static final Table<Record> TABLE = table("task_entry");
 
@@ -35,7 +35,7 @@ public class TaskEntryDAO {
 		this.jooqManager = jooqManager;
 	}
 
-	public Observable<TaskEntry> createTaskEntry(TaskEntry entry) {
+	Observable<TaskEntry> createTaskEntry(TaskEntry entry) {
 		return jooqManager.getConnection()
 				.doOnNext(connection -> connection.insertInto(TABLE)
 						.set(field("id"), entry.getId())
@@ -44,7 +44,7 @@ public class TaskEntryDAO {
 				.flatMap(Void -> getTaskEntry(entry.getId()));
 	}
 
-	public Observable<TaskEntry> getTaskEntry(String id) {
+	Observable<TaskEntry> getTaskEntry(String id) {
 		return jooqManager.getConnection()
 				.flatMap(connection -> Observable.from(connection.select()
 						.from(TABLE)
@@ -61,7 +61,7 @@ public class TaskEntryDAO {
 				.flatMap(this::toTaskEntry);
 	}
 
-	public Observable<EntriesResponse> getEntries(EntriesRequest request) {
+	Observable<EntriesResponse> getEntries(EntriesRequest request) {
 		return jooqManager.getConnection()
 				.flatMap(connection -> {
                     List<Condition> where = new ArrayList<>();

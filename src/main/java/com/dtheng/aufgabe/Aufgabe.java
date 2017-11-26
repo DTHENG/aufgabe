@@ -1,12 +1,16 @@
 package com.dtheng.aufgabe;
 
+import com.dtheng.aufgabe.button.ButtonApi;
+import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.device.DeviceManager;
-import com.dtheng.aufgabe.http.api.*;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
 import com.dtheng.aufgabe.io.RaspberryPiManager;
+import com.dtheng.aufgabe.stats.StatsApi;
+import com.dtheng.aufgabe.task.TaskApi;
+import com.dtheng.aufgabe.taskentry.EntryApi;
 import com.dtheng.aufgabe.taskentry.TaskEntryService;
 import com.google.inject.*;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +81,7 @@ public class Aufgabe {
                         routes.put("/buttonFromId/*", ButtonApi.GetButton.class);
                         routes.put("/removeButton/*", ButtonApi.RemoveButton.class);
                         routes.put("/config", ConfigApi.ButtonConfig.class);
+                        routes.put("/stats", StatsApi.Default.class);
 
                         return Observable.concat(Arrays.asList(
 
