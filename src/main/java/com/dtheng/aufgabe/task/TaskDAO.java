@@ -33,55 +33,55 @@ class TaskDAO {
 
     Observable<Task> createTask(Task task) {
         return jooqManager.getConnection()
-                .doOnNext(connection -> connection.insertInto(TABLE)
-                        .set(field("id"), task.getId())
-                        .set(field("description"), task.getDescription())
-                        .execute())
-                .flatMap(Void -> getTask(task.getId()));
+            .doOnNext(connection -> connection.insertInto(TABLE)
+                .set(field("id"), task.getId())
+                .set(field("description"), task.getDescription())
+                .execute())
+            .flatMap(Void -> getTask(task.getId()));
     }
 
     Observable<Task> getTask(String id) {
         return jooqManager.getConnection()
-                .flatMap(connection -> Observable.from(connection.select()
-                        .from(TABLE)
-                        .where(field("id").eq(id))
-                        .fetch()))
-                .defaultIfEmpty(null)
-                .flatMap(record -> {
-                    if (record == null) {
-                        log.error("Task not found, id: {}", id);
-                        return Observable.error(new AufgabeException("Task not found"));
-                    }
-                    return Observable.just(record);
-                })
-                .flatMap(this::toTask);
+            .flatMap(connection -> Observable.from(connection.select()
+                .from(TABLE)
+                .where(field("id").eq(id))
+                .fetch()))
+            .defaultIfEmpty(null)
+            .flatMap(record -> {
+                if (record == null) {
+                    log.error("Task not found, id: {}", id);
+                    return Observable.error(new AufgabeException("Task not found"));
+                }
+                return Observable.just(record);
+            })
+            .flatMap(this::toTask);
     }
 
     Observable<TasksResponse> getTasks(TasksRequest request) {
         return jooqManager.getConnection()
-                .flatMap(connection -> {
-                    int total = connection.selectCount()
-                            .from(TABLE)
-                            .fetchOne(0, int.class);
-                    return Observable.from(connection
-                            .select()
-                            .from(TABLE)
-                            .orderBy(field("createdAt").sort(SortOrder.DESC))
-                            .offset(request.getOffset())
-                            .limit(request.getLimit())
-                            .fetch())
-                            .concatMap(this::toTask)
-                            .toList()
-                            .map(list -> new TasksResponse(request.getOffset(), request.getLimit(), total, list));
-                });
+            .flatMap(connection -> {
+                int total = connection.selectCount()
+                    .from(TABLE)
+                    .fetchOne(0, int.class);
+                return Observable.from(connection
+                    .select()
+                    .from(TABLE)
+                    .orderBy(field("createdAt").sort(SortOrder.DESC))
+                    .offset(request.getOffset())
+                    .limit(request.getLimit())
+                    .fetch())
+                    .concatMap(this::toTask)
+                    .toList()
+                    .map(list -> new TasksResponse(request.getOffset(), request.getLimit(), total, list));
+            });
     }
 
     private Observable<Task> toTask(Record record) {
         try {
             return Observable.just(new Task(
-                    record.getValue("id").toString(),
-                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
-                    record.getValue("description").toString()));
+                record.getValue("id").toString(),
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
+                record.getValue("description").toString()));
         } catch (Throwable throwable) {
             return Observable.error(throwable);
         }
