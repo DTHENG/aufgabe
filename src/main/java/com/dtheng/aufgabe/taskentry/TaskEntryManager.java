@@ -1,9 +1,9 @@
-package com.dtheng.aufgabe.db;
+package com.dtheng.aufgabe.taskentry;
 
-import com.dtheng.aufgabe.db.dto.EntriesRequest;
-import com.dtheng.aufgabe.db.dto.EntriesResponse;
-import com.dtheng.aufgabe.db.dto.TaskEntryCreateRequest;
-import com.dtheng.aufgabe.db.model.TaskEntry;
+import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
+import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
+import com.dtheng.aufgabe.taskentry.dto.TaskEntryCreateRequest;
+import com.dtheng.aufgabe.taskentry.model.TaskEntry;
 import com.google.inject.ImplementedBy;
 import rx.Observable;
 

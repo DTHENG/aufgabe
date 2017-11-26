@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.db;
+package com.dtheng.aufgabe.jooq;
 
 import com.google.inject.ImplementedBy;
 import org.jooq.DSLContext;

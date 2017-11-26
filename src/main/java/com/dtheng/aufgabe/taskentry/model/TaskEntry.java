@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.db.model;
+package com.dtheng.aufgabe.taskentry.model;
 
 import lombok.*;
 
@@ -16,5 +16,5 @@ public class TaskEntry {
 
     private String id;
     private Date createdAt = new Date();
-    private String description;
+    private String taskId;
 }

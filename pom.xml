@@ -55,6 +55,12 @@
             <artifactId>lombok</artifactId>
             <version>1.16.18</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>21.0</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- JSON -->
         <dependency>

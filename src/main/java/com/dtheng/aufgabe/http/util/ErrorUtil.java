@@ -1,5 +1,7 @@
 package com.dtheng.aufgabe.http.util;
 
+import com.dtheng.aufgabe.Aufgabe;
+import com.dtheng.aufgabe.exceptions.AufgabeException;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
@@ -16,11 +18,13 @@ public class ErrorUtil {
 	}
 
 	public static Observable<Void> handle(Throwable throwable, HttpServletResponse resp, int code) {
-		log.error("Returning {} error: {}", code, throwable.getLocalizedMessage());
-//		throwable.printStackTrace();
 		resp.setStatus(code);
 		resp.setHeader("Server", "Raspberry Pi 3");
 		resp.setContentType("application/json");
+		String message = "Unknown Error";
+		if (throwable instanceof AufgabeException)
+			message = throwable.getLocalizedMessage();
+		log.error("Returning {} error: {}", code, message);
 		try {
 			resp.getWriter().write("{\"message\":\""+ throwable.getLocalizedMessage() +"\",\"code\":"+ code +"}");
 		} catch (Exception e) {

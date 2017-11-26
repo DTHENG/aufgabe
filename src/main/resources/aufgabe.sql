@@ -3,8 +3,25 @@ CREATE DATABASE aufgabe DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE utf8mb4_general_
 USE aufgabe;
 
 CREATE TABLE task_entry (
-  id VARCHAR(128) NOT NULL,
-  createdAt TIMESTAMP NOT NULL,
-  description TEXT NOT NULL,
-  PRIMARY KEY(id)
+    id VARCHAR(128) NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    taskId VARCHAR(128) NOT NULL,
+    PRIMARY KEY(id)
 );
+
+CREATE TABLE task (
+    id VARCHAR(128) NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    description TEXT NOT NULL,
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE button (
+    id VARCHAR(128) NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    ioPin VARCHAR(128) NOT NULL,
+    taskId VARCHAR(128) NOT NULL,
+    removedAt TIMESTAMP NULL,
+    PRIMARY KEY(id)
+);
+

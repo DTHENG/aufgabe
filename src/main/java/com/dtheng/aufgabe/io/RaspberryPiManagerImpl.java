@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.io;
 
-import com.dtheng.aufgabe.db.TaskEntryManager;
+import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.google.inject.*;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;

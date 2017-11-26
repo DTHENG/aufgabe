@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.db;
+package com.dtheng.aufgabe.jooq;
 
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.google.inject.Inject;
@@ -7,13 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
-import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultConnectionProvider;
 import rx.Observable;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 
 /**

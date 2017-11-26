@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.db.util;
+package com.dtheng.aufgabe.util;
 
 /**
  * @author https://stackoverflow.com/a/41156
