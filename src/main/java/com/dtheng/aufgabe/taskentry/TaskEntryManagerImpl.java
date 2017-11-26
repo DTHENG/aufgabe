@@ -32,7 +32,7 @@ public class TaskEntryManagerImpl implements TaskEntryManager {
 	@Override
 	public Observable<TaskEntry> create(TaskEntryCreateRequest request) {
 		TaskEntry entry = new TaskEntry();
-		entry.setId(new RandomString(8).nextString());
+		entry.setId("entry-"+ new RandomString(8).nextString());
 		entry.setCreatedAt(new Date());
 		entry.setTaskId(request.getTaskId());
 		return taskEntryDAO.createTaskEntry(entry);

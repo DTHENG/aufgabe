@@ -100,4 +100,26 @@ public class ButtonApi {
                             });
         }
     }
+
+    public static class RemoveButton extends AufgabeServlet {
+
+        private ButtonManager buttonManager;
+
+        @Inject
+        public RemoveButton(ButtonManager buttonManager) {
+            this.buttonManager = buttonManager;
+        }
+
+        @Override
+        protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            buttonManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length()))
+                    .flatMap(button -> ResponseUtil.set(resp, button, 200))
+                    .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                    .subscribe(Void -> {},
+                            error -> {
+                                log.error(error.toString());
+                                error.printStackTrace();
+                            });
+        }
+    }
 }

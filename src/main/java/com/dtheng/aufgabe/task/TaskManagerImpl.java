@@ -42,7 +42,7 @@ public class TaskManagerImpl implements TaskManager {
     @Override
     public Observable<AggregateTask> create(TaskCreateRequest request) {
         Task task = new Task();
-        task.setId(new RandomString(8).nextString());
+        task.setId("task-"+ new RandomString(8).nextString());
         task.setCreatedAt(new Date());
         task.setDescription(request.getDescription());
         return taskDAO.createTask(task)
@@ -59,8 +59,12 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     private Observable<AggregateTask> aggregate(Task task) {
+        ButtonsRequest buttonsRequest = new ButtonsRequest();
+        buttonsRequest.setOffset(0);
+        buttonsRequest.setLimit(10);
+        buttonsRequest.setTaskId(Optional.of(task.getId()));
         return Observable.zip(
-                buttonManager.get(new ButtonsRequest(0, 10, Optional.of(task.getId())))
+                buttonManager.get(buttonsRequest)
                     .map(ButtonsResponse::getButtons),
                 taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId())))
                     .map(EntriesResponse::getEntries),

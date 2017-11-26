@@ -1,24 +1,19 @@
 package com.dtheng.aufgabe;
 
-import com.dtheng.aufgabe.button.model.Button;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.http.api.ButtonApi;
-import com.dtheng.aufgabe.http.api.EntryApi;
-import com.dtheng.aufgabe.http.api.TaskApi;
+import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.http.api.*;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
 import com.dtheng.aufgabe.io.RaspberryPiManager;
-import com.google.common.collect.ImmutableMap;
+import com.dtheng.aufgabe.taskentry.TaskEntryService;
 import com.google.inject.*;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
 import javax.servlet.Servlet;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -38,7 +33,10 @@ public class Aufgabe {
 
         startUp.start(customConfigFileName)
                 .subscribe(Void -> {},
-                        error -> log.error(error.toString()));
+                        error -> {
+                            error.printStackTrace();
+                            log.error(error.toString());
+                        });
     }
 
     private static class StartUp {
@@ -47,13 +45,17 @@ public class Aufgabe {
         private ConfigManager configManager;
         private JooqManager jooqManager;
         private RaspberryPiManager raspberryPiManager;
+        private TaskEntryService taskEntryService;
+        private DeviceManager deviceManager;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager, TaskEntryService taskEntryService, DeviceManager deviceManager) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.jooqManager = jooqManager;
             this.raspberryPiManager = raspberryPiManager;
+            this.taskEntryService = taskEntryService;
+            this.deviceManager = deviceManager;
         }
 
         public Observable<Void> start(Optional<String> customConfigFileName) {
@@ -73,14 +75,20 @@ public class Aufgabe {
                         routes.put("/button", ButtonApi.CreateButton.class);
                         routes.put("/buttons", ButtonApi.Buttons.class);
                         routes.put("/buttonFromId/*", ButtonApi.GetButton.class);
+                        routes.put("/removeButton/*", ButtonApi.RemoveButton.class);
+                        routes.put("/config", ConfigApi.ButtonConfig.class);
 
                         return Observable.concat(Arrays.asList(
+
+                                deviceManager.startUp(),
 
                                 // Create database connection
                                 jooqManager.startUp(),
 
                                 // Configure IO pins on raspberry pi
                                 raspberryPiManager.startUp(),
+
+                                taskEntryService.startUp(),
 
                                 // Start the http server
                                 servletManager.start(config.getHttpPort(), routes))

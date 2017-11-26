@@ -20,6 +20,7 @@ CREATE TABLE button (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     ioPin VARCHAR(128) NOT NULL,
+    device VARCHAR(128) NOT NULL,
     taskId VARCHAR(128) NOT NULL,
     removedAt TIMESTAMP NULL,
     PRIMARY KEY(id)

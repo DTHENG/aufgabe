@@ -24,9 +24,11 @@ public class ErrorUtil {
 		String message = "Unknown Error";
 		if (throwable instanceof AufgabeException)
 			message = throwable.getLocalizedMessage();
+		else
+		    throwable.printStackTrace();
 		log.error("Returning {} error: {}", code, message);
 		try {
-			resp.getWriter().write("{\"message\":\""+ throwable.getLocalizedMessage() +"\",\"code\":"+ code +"}");
+			resp.getWriter().write("{\"message\":\""+ message +"\",\"code\":"+ code +"}");
 		} catch (Exception e) {
 			return Observable.error(e);
 		}

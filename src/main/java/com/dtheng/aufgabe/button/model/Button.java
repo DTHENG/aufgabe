@@ -1,6 +1,5 @@
 package com.dtheng.aufgabe.button.model;
 
-import com.pi4j.io.gpio.RaspiPin;
 import lombok.*;
 
 import java.util.Date;
@@ -20,5 +19,6 @@ public class Button {
     private Date createdAt;
     private String ioPin;
     private String  taskId;
+    private String device;
     private Optional<Date> removedAt;
 }

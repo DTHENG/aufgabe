@@ -11,9 +11,9 @@ import rx.Observable;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.jooq.impl.DSL.*;
 
@@ -36,8 +36,9 @@ public class ButtonDAO {
         return jooqManager.getConnection()
                 .doOnNext(connection -> connection.insertInto(TABLE)
                         .set(field("id"), button.getId())
-                        .set(field("ioPin"), button.getIoPin().toString())
+                        .set(field("ioPin"), button.getIoPin())
                         .set(field("taskId"), button.getTaskId())
+                        .set(field("device"), button.getDevice())
                         .execute())
                 .flatMap(Void -> getButton(button.getId()));
     }
@@ -59,15 +60,29 @@ public class ButtonDAO {
                 .flatMap(this::toButton);
     }
 
+    public Observable<Void> removeButton(String id) {
+        return jooqManager.getConnection()
+                .flatMap(connection -> {
+                    connection.update(TABLE)
+                            .set(field("removedAt"), new Date())
+                            .where(field("id").eq(id))
+                            .execute();
+                    return Observable.empty();
+                });
+    }
+
     public Observable<ButtonsResponse> getButtons(ButtonsRequest request) {
         return jooqManager.getConnection()
                 .flatMap(connection -> {
 
                     List<Condition> where = new ArrayList<>();
-
+                    where.add(field("removedAt").isNull());
                     if (request.getTaskId().isPresent())
                         where.add(field("taskId").eq(request.getTaskId().get()));
-
+                    if (request.getDevice().isPresent())
+                        where.add(field("device").eq(request.getDevice().get()));
+                    if (request.getIoPin().isPresent())
+                        where.add((field("ioPin").eq(request.getIoPin().get())));
                     int total = connection.selectCount()
                             .from(TABLE)
                             .where(where)
@@ -77,7 +92,9 @@ public class ButtonDAO {
                             .select()
                             .from(TABLE)
                             .where(where)
-                            .orderBy(field("createdAt").sort(SortOrder.DESC))
+                            .orderBy(
+                                    field(request.getOrderBy().isPresent() ? request.getOrderBy().get() : "createdAt")
+                                            .sort(request.getOrderDirection().isPresent() ? (request.getOrderDirection().get().toLowerCase().equals("asc") ? SortOrder.ASC : SortOrder.DESC) : SortOrder.DESC))
                             .offset(request.getOffset())
                             .limit(request.getLimit())
                             .fetch())
@@ -94,6 +111,7 @@ public class ButtonDAO {
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
                     record.getValue("ioPin").toString(),
                     record.getValue("taskId").toString(),
+                    record.getValue("device").toString(),
                     Optional.ofNullable(record.getValue("removedAt") == null ? null : new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("removedAt").toString()))));
         } catch (Throwable throwable) {
             return Observable.error(throwable);

@@ -16,4 +16,6 @@ public interface ButtonManager {
     Observable<ButtonsResponse> get(ButtonsRequest request);
 
     Observable<Button> create(ButtonCreateRequest request);
+
+    Observable<Button> remove(String id);
 }
