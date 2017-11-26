@@ -3,26 +3,79 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.dtheng</groupId>
     <artifactId>aufgabe</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1</version>
+    <name>Aufgabe</name>
+    <description>Aufgabe</description>
+    <url>https://github.com/dtheng/aufgabe</url>
+    <developers>
+        <developer>
+            <id>dtheng</id>
+            <name>Daniel Thengvall</name>
+            <email>fender5289@gmail.com</email>
+            <url>http://www.dtheng.com/</url>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <repositories>
+
+        <!-- For dependency: com.pi4j -->
+        <repository>
+            <id>oss-snapshots-repo</id>
+            <name>Sonatype OSS Maven Repository</name>
+            <url>https://oss.sonatype.org/content/groups/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+
+        <!-- For dependency: com.github.Fylipp -->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
     <dependencies>
+
+        <!-- Raspberry Pi -->
         <dependency>
             <groupId>com.pi4j</groupId>
             <artifactId>pi4j-core</artifactId>
             <version>1.2-SNAPSHOT</version>
         </dependency>
+
+        <!-- Java Utilities -->
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
             <version>1.3.3</version>
         </dependency>
         <dependency>
-            <groupId>com.squareup.retrofit</groupId>
-            <artifactId>retrofit</artifactId>
-            <version>1.6.1</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.18</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>21.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+
+        <!-- JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
@@ -39,6 +92,8 @@
             <artifactId>jackson-databind-java-optional</artifactId>
             <version>2.6.1</version>
         </dependency>
+
+        <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -46,10 +101,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.16.18</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.12.0</version>
+            <scope>test</scope>
         </dependency>
+
+        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -60,11 +118,19 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.13</version>
         </dependency>
+
+        <!-- Events -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.12.0</version>
-            <scope>test</scope>
+            <groupId>com.github.Fylipp</groupId>
+            <artifactId>easy-events</artifactId>
+            <version>v1.1.0</version>
+        </dependency>
+
+        <!-- Networking -->
+        <dependency>
+            <groupId>com.squareup.retrofit</groupId>
+            <artifactId>retrofit</artifactId>
+            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -96,11 +162,19 @@
             <artifactId>jsp-api-2.1</artifactId>
             <version>6.1.14</version>
         </dependency>
+
+        <!-- Database -->
         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>4.1.0</version>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>3.10.1</version>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.6</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -138,5 +212,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
