@@ -15,6 +15,4 @@ import java.util.Map;
 public interface ServletManager {
 
     Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config);
-
-    String fuck();
 }

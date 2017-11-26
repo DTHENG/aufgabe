@@ -1,10 +1,7 @@
 package com.dtheng.aufgabe.http;
 
 import com.dtheng.aufgabe.AufgabeContext;
-import com.dtheng.aufgabe.AufgabeModule;
-import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.mortbay.jetty.Server;
@@ -18,7 +15,6 @@ import java.util.Map;
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
-@Singleton
 @Slf4j
 public class ServletManagerImpl implements ServletManager {
 
@@ -31,6 +27,7 @@ public class ServletManagerImpl implements ServletManager {
 
     @Override
     public Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config) {
+    	log.info("Starting HTTP server...");
         return Observable.defer(() -> {
             Server server = new Server(port);
             Context jettyContext = new Context();
@@ -46,7 +43,7 @@ public class ServletManagerImpl implements ServletManager {
                         server.setHandler(jettyContext);
                         try {
                             server.start();
-                            log.info("Server running on port {}", port);
+                            log.info("Server running on port {}!", port);
                             server.join();
                             return Observable.empty();
                         } catch (Throwable throwable) {
@@ -54,10 +51,5 @@ public class ServletManagerImpl implements ServletManager {
                         }
                     });
         }).ignoreElements().cast(Void.class);
-    }
-
-    @Override
-    public String fuck() {
-        return "off";
     }
 }
