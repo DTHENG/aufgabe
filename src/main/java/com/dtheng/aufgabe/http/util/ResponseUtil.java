@@ -27,7 +27,6 @@ public class ResponseUtil {
                 return Observable.empty();
             } catch (JsonProcessingException jpe) {
                 log.error("Error serializing json: {}", body.toString());
-//				jpe.printStackTrace();
                 log.error("Returning 500 with error");
                 resp.setStatus(500);
                 resp.getWriter().write("{\"message\":\"An error has occurred.\",\"code\":500}\n");
