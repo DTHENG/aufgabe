@@ -1,0 +1,7 @@
+{
+  "http_port": 8080,
+  "db_user": "root",
+  "db_password": "abcd1234",
+  "db_port": 3306,
+  "db_name": "aufgabe"
+}

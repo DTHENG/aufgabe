@@ -1,3 +1,7 @@
+# Aufgabe Configurations
+/src/main/resources/configuration-*
+!/src/main/resources/configuration-default.json
+
 .DS_Store
 target/
 

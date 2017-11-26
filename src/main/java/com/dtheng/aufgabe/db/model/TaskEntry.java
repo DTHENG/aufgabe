@@ -15,6 +15,6 @@ import java.util.Date;
 public class TaskEntry {
 
     private String id;
-    private Date createdAt;
+    private Date createdAt = new Date();
     private String description;
 }

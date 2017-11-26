@@ -1,0 +1,57 @@
+package com.dtheng.aufgabe.db;
+
+import com.dtheng.aufgabe.config.ConfigManager;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.DefaultConnectionProvider;
+import rx.Observable;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+/**
+ * @author Daniel Thengvall <fender5289@gmail.com>
+ */
+@Slf4j
+@Singleton
+public class JooqManagerImpl implements JooqManager {
+
+	private Configuration configuration;
+
+	private ConfigManager configManager;
+
+	@Inject
+	public JooqManagerImpl(ConfigManager configManager) {
+		this.configManager = configManager;
+	}
+
+	@Override
+	public Observable<Void> startUp() {
+		log.info("Creating database connection...");
+		return configManager.getConfig()
+				.flatMap(config -> {
+					String url = "jdbc:mysql://localhost:"+ config.getDatabasePort() +"/"+ config.getDatabaseName();
+					try {
+						configuration = new DefaultConfiguration()
+								.set(DriverManager.getConnection(url, config.getDatabaseUser(), config.getDatabasePassword()))
+								.set(SQLDialect.MYSQL);
+						log.info("Database connected!");
+						return Observable.empty();
+					} catch (Exception e) {
+						return Observable.error(e);
+					}
+				});
+	}
+
+	@Override
+	public Observable<DSLContext> getConnection() {
+		return Observable.just(DSL.using(configuration));
+	}
+}
