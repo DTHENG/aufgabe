@@ -65,7 +65,8 @@ public class StatsApi {
                             .flatMap(task -> toAggregateTaskEntry(entry, task)))
                         .toList()),
                 StatsDefaultResponse::new)
-                .flatMap(body -> ResponseUtil.set(resp, body, 200))
+                .defaultIfEmpty(null)
+                .flatMap(body -> ResponseUtil.set(resp, Optional.ofNullable(body), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {},
                     error -> {
@@ -84,7 +85,7 @@ public class StatsApi {
                     node.put("task", task.getTask().getDescription());
                     long timeZoneOffset = TimeZone.getTimeZone(configuration.getTimeZone()).getRawOffset();
                     Date adjustedDate = new Date(entry.getCreatedAt().getTime() + timeZoneOffset);
-                    node.put("createdAt", new SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(adjustedDate));
+                    node.put("createdAt", new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(adjustedDate));
                     return (JsonNode) node;
                 });
         }

@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.device;
 
-import com.dtheng.aufgabe.device.model.DeviceType;
+import com.dtheng.aufgabe.config.model.DeviceType;
 import com.google.inject.Singleton;
 import com.pi4j.system.SystemInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -17,14 +17,10 @@ import java.net.NetworkInterface;
 public class DeviceManagerImpl implements DeviceManager {
 
     private String id;
-    private DeviceType type;
 
     @Override
     public Observable<Void> startUp() {
-        log.info("Starting device manager...");
         return loadId()
-            .flatMap(Void -> loadType())
-            .doOnNext(Void -> log.info("Device manager setup! id: {}, type: {}", this.id, this.type))
             .ignoreElements().cast(Void.class);
     }
 
@@ -33,13 +29,6 @@ public class DeviceManagerImpl implements DeviceManager {
         if (id == null)
             return loadId();
         return Observable.just(id);
-    }
-
-    @Override
-    public Observable<DeviceType> getDeviceType() {
-        if (type == null)
-            return loadType();
-        return Observable.just(type);
     }
 
     private Observable<String> loadId() {
@@ -62,23 +51,5 @@ public class DeviceManagerImpl implements DeviceManager {
             }
         })
             .doOnNext(id -> this.id = id);
-    }
-
-    private Observable<DeviceType> loadType() {
-        return Observable.defer(() -> {
-            try {
-                InetAddress ip = InetAddress.getLocalHost();
-                try {
-                    NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-                    network.getHardwareAddress();
-                    return Observable.just(DeviceType.MAC_OS);
-                } catch (NullPointerException npe) {
-                    return Observable.just(DeviceType.RASPBERRY_PI);
-                }
-            } catch (Throwable throwable) {
-                return Observable.error(throwable);
-            }
-        })
-            .doOnNext(type -> this.type = type);
     }
 }

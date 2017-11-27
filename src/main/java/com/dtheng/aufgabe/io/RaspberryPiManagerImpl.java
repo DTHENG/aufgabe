@@ -4,6 +4,8 @@ import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.button.ButtonManager;
 import com.dtheng.aufgabe.button.dto.ButtonsRequest;
 import com.dtheng.aufgabe.button.model.Button;
+import com.dtheng.aufgabe.config.ConfigManager;
+import com.dtheng.aufgabe.config.model.Configuration;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.io.util.AufgabePinListenerDigital;
 import com.google.inject.*;
@@ -26,20 +28,22 @@ public class RaspberryPiManagerImpl implements RaspberryPiManager {
     private ButtonManager buttonManager;
     private AufgabeContext aufgabeContext;
     private DeviceManager deviceManager;
+    private ConfigManager configManager;
 
     @Inject
-    public RaspberryPiManagerImpl(ButtonManager buttonManager, AufgabeContext aufgabeContext, DeviceManager deviceManager) {
+    public RaspberryPiManagerImpl(ButtonManager buttonManager, AufgabeContext aufgabeContext, DeviceManager deviceManager, ConfigManager configManager) {
         this.buttonManager = buttonManager;
         this.aufgabeContext = aufgabeContext;
         this.deviceManager = deviceManager;
+        this.configManager = configManager;
     }
 
     @Override
     public Observable<Void> startUp() {
-        log.info("Configuring Raspberry Pi...");
         return Observable.zip(
             deviceManager.getDeviceId(),
-            deviceManager.getDeviceType(),
+            configManager.getConfig()
+                .map(Configuration::getDeviceType),
             (deviceId, deviceType) -> {
                 switch (deviceType) {
                     case RASPBERRY_PI:
@@ -60,12 +64,10 @@ public class RaspberryPiManagerImpl implements RaspberryPiManager {
                                 })
                                 .toList());
                     default:
-                        log.info("Not a Raspberry Pi :nothingtodohere:");
                         return Observable.empty();
                 }
             })
             .flatMap(o -> o)
-            .doOnNext(Void -> log.info("Raspberry Pi Configured!"))
             .ignoreElements().cast(Void.class);
     }
 

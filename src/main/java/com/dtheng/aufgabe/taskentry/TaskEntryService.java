@@ -28,12 +28,7 @@ public class TaskEntryService {
     }
 
     public Observable<Void> startUp() {
-        log.info("Starting task entry service...");
-
         eventManager.getButtonPressed().addListener(aufgabeContext.getInjector().getInstance(Handlers.ButtonPressed.class));
-
-        log.info("Task entry service started!");
-
         return Observable.empty();
     }
 
@@ -56,8 +51,7 @@ public class TaskEntryService {
             public void accept(ButtonPressedEvent buttonPressedEvent) {
                 buttonManager.get(buttonPressedEvent.getButtonId())
                     .flatMap(button -> taskEntryManager.create(new TaskEntryCreateRequest(button.getTaskId())))
-                    .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId())
-                        .doOnNext(aggregateTask -> log.info("Created new task entry {} {}", taskEntry.getId(), aggregateTask.getTask().getDescription())))
+                    .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId()))
                     .subscribe(Void -> {},
                         error -> log.error(error.toString()));
             }

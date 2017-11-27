@@ -53,7 +53,8 @@ public class ConfigApi {
                 .concatMap(button -> taskManager.get(button.getTaskId())
                     .map(task -> task.getTask().getDescription()))
                 .toList()
-                .flatMap(tasks -> ResponseUtil.set(resp, tasks, 200))
+                .defaultIfEmpty(null)
+                .flatMap(tasks -> ResponseUtil.set(resp, Optional.ofNullable(tasks), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {},
                     error -> {

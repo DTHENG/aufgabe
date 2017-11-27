@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.device;
+package com.dtheng.aufgabe.sync;
 
 import com.google.inject.ImplementedBy;
 import rx.Observable;
@@ -6,10 +6,10 @@ import rx.Observable;
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
-@ImplementedBy(DeviceManagerImpl.class)
-public interface DeviceManager {
+@ImplementedBy(SyncManagerImpl.class)
+public interface SyncManager {
 
     Observable<Void> startUp();
 
-    Observable<String> getDeviceId();
+    Observable<SyncClient> getSyncClient();
 }

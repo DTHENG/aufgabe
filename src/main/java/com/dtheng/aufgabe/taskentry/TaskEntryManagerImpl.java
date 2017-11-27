@@ -1,5 +1,9 @@
 package com.dtheng.aufgabe.taskentry;
 
+import com.dtheng.aufgabe.config.ConfigManager;
+import com.dtheng.aufgabe.config.model.Configuration;
+import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
 import com.dtheng.aufgabe.taskentry.dto.TaskEntryCreateRequest;
@@ -18,10 +22,12 @@ import java.util.Date;
 public class TaskEntryManagerImpl implements TaskEntryManager {
 
     private TaskEntryDAO taskEntryDAO;
+    private ConfigManager configManager;
 
     @Inject
-    public TaskEntryManagerImpl(TaskEntryDAO taskEntryDAO) {
+    public TaskEntryManagerImpl(TaskEntryDAO taskEntryDAO, ConfigManager configManager) {
         this.taskEntryDAO = taskEntryDAO;
+        this.configManager = configManager;
     }
 
     @Override
@@ -31,11 +37,17 @@ public class TaskEntryManagerImpl implements TaskEntryManager {
 
     @Override
     public Observable<TaskEntry> create(TaskEntryCreateRequest request) {
-        TaskEntry entry = new TaskEntry();
-        entry.setId("entry-"+ new RandomString(8).nextString());
-        entry.setCreatedAt(new Date());
-        entry.setTaskId(request.getTaskId());
-        return taskEntryDAO.createTaskEntry(entry);
+        return configManager.getConfig()
+            .map(Configuration::getDeviceType)
+            .flatMap(deviceType -> {
+                if (deviceType != DeviceType.RASPBERRY_PI)
+                    return Observable.error(new UnsupportedException());
+                TaskEntry entry = new TaskEntry();
+                entry.setId("entry-"+ new RandomString(8).nextString());
+                entry.setCreatedAt(new Date());
+                entry.setTaskId(request.getTaskId());
+                return taskEntryDAO.createTaskEntry(entry);
+            });
     }
 
     @Override

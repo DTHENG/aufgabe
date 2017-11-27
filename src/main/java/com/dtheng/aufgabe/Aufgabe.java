@@ -9,6 +9,8 @@ import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
 import com.dtheng.aufgabe.io.RaspberryPiManager;
 import com.dtheng.aufgabe.stats.StatsApi;
+import com.dtheng.aufgabe.sync.SyncApi;
+import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.TaskApi;
 import com.dtheng.aufgabe.taskentry.EntryApi;
 import com.dtheng.aufgabe.taskentry.TaskEntryService;
@@ -51,15 +53,17 @@ public class Aufgabe {
         private RaspberryPiManager raspberryPiManager;
         private TaskEntryService taskEntryService;
         private DeviceManager deviceManager;
+        private SyncManager syncManager;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager, TaskEntryService taskEntryService, DeviceManager deviceManager) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager, TaskEntryService taskEntryService, DeviceManager deviceManager, SyncManager syncManager) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.jooqManager = jooqManager;
             this.raspberryPiManager = raspberryPiManager;
             this.taskEntryService = taskEntryService;
             this.deviceManager = deviceManager;
+            this.syncManager = syncManager;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
@@ -80,8 +84,11 @@ public class Aufgabe {
                     routes.put("/buttons", ButtonApi.Buttons.class);
                     routes.put("/buttonFromId/*", ButtonApi.GetButton.class);
                     routes.put("/removeButton/*", ButtonApi.RemoveButton.class);
+
                     routes.put("/config", ConfigApi.ButtonConfig.class);
                     routes.put("/stats", StatsApi.Default.class);
+
+                    routes.put("/sync/task", SyncApi.SyncTask.class);
 
                     return Observable.concat(Arrays.asList(
 
@@ -94,6 +101,8 @@ public class Aufgabe {
                         raspberryPiManager.startUp(),
 
                         taskEntryService.startUp(),
+
+                        syncManager.startUp(),
 
                         // Start the http server
                         servletManager.start(config.getHttpPort(), routes))
