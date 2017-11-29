@@ -12,6 +12,8 @@ import lombok.*;
 @NoArgsConstructor
 public class TasksRequest {
 
-	private int offset;
-	private int limit;
+	private int offset = 0;
+	private int limit = 10;
+
+	private boolean onlyShowNeedSync = false;
 }

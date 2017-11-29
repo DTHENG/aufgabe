@@ -4,25 +4,42 @@ USE aufgabe;
 
 CREATE TABLE task_entry (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     taskId VARCHAR(128) NOT NULL,
+    inputId VARCHAR(128) NOT NULL,
+    updatedAt TIMESTAMP NULL,
+    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 
 CREATE TABLE task (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     description TEXT NOT NULL,
+    updatedAt TIMESTAMP NULL,
+    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 
-CREATE TABLE button (
+CREATE TABLE input (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ioPin VARCHAR(128) NOT NULL,
     device VARCHAR(128) NOT NULL,
     taskId VARCHAR(128) NOT NULL,
     removedAt TIMESTAMP NULL,
+    handler VARCHAR(128) NOT NULL,
+    updatedAt TIMESTAMP NULL,
+    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 
+CREATE TABLE sync_entry (
+    id VARCHAR(128) NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    startedAt TIMESTAMP NULL,
+    completedAt TIMESTAMP NULL,
+    numberOfRecordsSynced INT NULL,
+    recordsSynced TEXT NULL,
+    PRIMARY KEY(id)
+);

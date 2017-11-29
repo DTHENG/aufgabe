@@ -26,7 +26,6 @@ public class ServletManagerImpl implements ServletManager {
 
     @Override
     public Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config) {
-        log.info("Starting HTTP server...");
         return Observable.defer(() -> {
             Server server = new Server(port);
             Context jettyContext = new Context();

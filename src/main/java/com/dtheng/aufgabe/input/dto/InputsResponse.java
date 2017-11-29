@@ -1,6 +1,6 @@
-package com.dtheng.aufgabe.button.dto;
+package com.dtheng.aufgabe.input.dto;
 
-import com.dtheng.aufgabe.button.model.Button;
+import com.dtheng.aufgabe.input.model.Input;
 import lombok.*;
 
 import java.util.List;
@@ -13,10 +13,10 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ButtonsResponse {
+public class InputsResponse {
 
     private int offset;
     private int limit;
     private int total;
-    private List<Button> buttons;
+    private List<Input> inputs;
 }

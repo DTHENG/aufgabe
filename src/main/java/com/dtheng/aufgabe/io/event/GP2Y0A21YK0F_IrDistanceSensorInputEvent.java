@@ -10,7 +10,8 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ButtonPressedEvent {
+public class GP2Y0A21YK0F_IrDistanceSensorInputEvent {
 
-    private String buttonId;
+    private String inputId;
+    private boolean objectFound = false;
 }

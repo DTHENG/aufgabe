@@ -29,11 +29,11 @@ public class ConfigManagerImpl implements ConfigManager {
 
     @Override
     public Observable<Void> load(Optional<String> customConfigFileName) {
-        log.info("Loading Configuration...");
         String filename = ! customConfigFileName.isPresent() ? "configuration-default.json" : customConfigFileName.get();
         return fileManager.read(filename)
             .flatMap(raw -> {
                 ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.findAndRegisterModules();
                 try {
                     return Observable.just(objectMapper.readValue(raw, Configuration.class));
                 } catch (IOException e) {
@@ -41,7 +41,6 @@ public class ConfigManagerImpl implements ConfigManager {
                 }
             })
             .doOnNext(configuration -> this.configuration = Optional.of(configuration))
-            .doOnNext(configuration -> log.info("Configuration loaded! (/src/main/resources/{})", filename))
             .ignoreElements().cast(Void.class);
     }
 

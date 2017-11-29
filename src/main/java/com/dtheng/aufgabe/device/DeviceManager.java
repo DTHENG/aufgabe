@@ -1,6 +1,5 @@
 package com.dtheng.aufgabe.device;
 
-import com.dtheng.aufgabe.device.model.DeviceType;
 import com.google.inject.ImplementedBy;
 import rx.Observable;
 
@@ -13,6 +12,4 @@ public interface DeviceManager {
     Observable<Void> startUp();
 
     Observable<String> getDeviceId();
-
-    Observable<DeviceType> getDeviceType();
 }

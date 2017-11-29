@@ -31,7 +31,6 @@ public class JooqManagerImpl implements JooqManager {
 
     @Override
     public Observable<Void> startUp() {
-        log.info("Creating database connection...");
         return configManager.getConfig()
             .flatMap(config -> {
                 String url = "jdbc:mysql://localhost:"+ config.getDatabasePort() +"/"+ config.getDatabaseName();
@@ -39,7 +38,6 @@ public class JooqManagerImpl implements JooqManager {
                     configuration = new DefaultConfiguration()
                         .set(DriverManager.getConnection(url, config.getDatabaseUser(), config.getDatabasePassword()))
                         .set(SQLDialect.MYSQL);
-                    log.info("Database connected!");
                     return Observable.empty();
                 } catch (Exception e) {
                     return Observable.error(e);
@@ -50,5 +48,12 @@ public class JooqManagerImpl implements JooqManager {
     @Override
     public Observable<DSLContext> getConnection() {
         return Observable.just(DSL.using(configuration));
+    }
+
+    @Override
+    public Observable<DSLContext> reconnect() {
+        return startUp()
+            .defaultIfEmpty(null)
+            .flatMap(Void -> getConnection());
     }
 }
