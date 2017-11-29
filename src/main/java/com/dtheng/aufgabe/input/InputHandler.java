@@ -9,6 +9,4 @@ import rx.Observable;
 public interface InputHandler {
 
     Observable<Void> startUp(Input input);
-
-    Observable<Void> shutdown();
 }

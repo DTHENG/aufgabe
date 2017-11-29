@@ -34,9 +34,4 @@ public class B3F_TactileSwitchInputHandler implements InputHandler {
                 return Observable.empty();
             });
     }
-
-    @Override
-    public Observable<Void> shutdown() {
-        return null;
-    }
 }

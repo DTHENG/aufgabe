@@ -1,17 +1,17 @@
 package com.dtheng.aufgabe.io.util;
 
 import com.dtheng.aufgabe.event.EventManager;
-import com.dtheng.aufgabe.io.event.B3F_TactileSwitchInputPressedEvent;
+import com.dtheng.aufgabe.io.event.GP2Y0A21YK0F_IrDistanceSensorInputEvent;
 import com.google.inject.Inject;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import lombok.*;
+import lombok.Setter;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
-public class B3F_TactileSwitchInputListener implements GpioPinListenerDigital {
+public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListenerDigital {
 
     @Setter
     private String inputId;
@@ -19,14 +19,13 @@ public class B3F_TactileSwitchInputListener implements GpioPinListenerDigital {
     private EventManager eventManager;
 
     @Inject
-    public B3F_TactileSwitchInputListener(EventManager eventManager) {
+    public GP2Y0A21YK0F_IrDistanceSensorInputListener(EventManager eventManager) {
         this.eventManager = eventManager;
     }
 
     @Override
     public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-        if (event.getState() == PinState.HIGH)
-            eventManager.getB3F_TactileSwitchInputPressed()
-                .trigger(new B3F_TactileSwitchInputPressedEvent(inputId));
+        eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
+            .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, event.getState() == PinState.HIGH));
     }
 }
