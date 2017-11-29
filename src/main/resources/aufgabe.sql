@@ -6,7 +6,8 @@ CREATE TABLE task_entry (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     taskId VARCHAR(128) NOT NULL,
-    updatedAt TIMESTAMP NOT NULL,
+    inputId VARCHAR(128) NOT NULL,
+    updatedAt TIMESTAMP NULL,
     syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
@@ -15,6 +16,8 @@ CREATE TABLE task (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
+    updatedAt TIMESTAMP NULL,
+    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 
@@ -26,6 +29,8 @@ CREATE TABLE input (
     taskId VARCHAR(128) NOT NULL,
     removedAt TIMESTAMP NULL,
     handler VARCHAR(128) NOT NULL,
+    updatedAt TIMESTAMP NULL,
+    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 

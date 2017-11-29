@@ -89,7 +89,7 @@ public class TaskManagerImpl implements TaskManager {
         return Observable.zip(
             inputManager.get(inputsRequest)
                 .map(InputsResponse::getInputs),
-            taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId())))
+            taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId()), false))
                 .map(EntriesResponse::getEntries),
             (inputs, entries) -> new AggregateTask(task, entries, inputs)) ;
     }

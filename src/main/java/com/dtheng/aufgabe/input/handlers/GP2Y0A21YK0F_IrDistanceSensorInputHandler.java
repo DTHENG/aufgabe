@@ -6,6 +6,7 @@ import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.io.RaspberryPiManager;
 import com.dtheng.aufgabe.io.util.GP2Y0A21YK0F_IrDistanceSensorInputListener;
 import com.google.inject.Inject;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
@@ -13,6 +14,7 @@ import rx.Observable;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
+@NoArgsConstructor
 public class GP2Y0A21YK0F_IrDistanceSensorInputHandler implements InputHandler {
 
     private RaspberryPiManager raspberryPiManager;

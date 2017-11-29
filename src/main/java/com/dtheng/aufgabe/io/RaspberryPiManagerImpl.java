@@ -18,6 +18,10 @@ public class RaspberryPiManagerImpl implements RaspberryPiManager {
 
     private Map<String, GpioPinDigitalInput> digitalInputMap = new HashMap<>();
 
+    public RaspberryPiManagerImpl() {
+        controller = GpioFactory.getInstance();
+    }
+
     @Override
     public Observable<GpioPinDigitalInput> getDigitalInput(String ioPin) {
         if (digitalInputMap.containsKey(ioPin))

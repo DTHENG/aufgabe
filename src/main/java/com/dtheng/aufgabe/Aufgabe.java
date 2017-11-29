@@ -4,6 +4,7 @@ import com.dtheng.aufgabe.input.InputApi;
 import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
@@ -50,20 +51,21 @@ public class Aufgabe {
         private ServletManager servletManager;
         private ConfigManager configManager;
         private JooqManager jooqManager;
-        private RaspberryPiManager raspberryPiManager;
         private TaskEntryService taskEntryService;
         private DeviceManager deviceManager;
         private SyncManager syncManager;
+        private InputManager inputManager;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, RaspberryPiManager raspberryPiManager, TaskEntryService taskEntryService, DeviceManager deviceManager, SyncManager syncManager) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, TaskEntryService taskEntryService,
+                       DeviceManager deviceManager, SyncManager syncManager, InputManager inputManager) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.jooqManager = jooqManager;
-            this.raspberryPiManager = raspberryPiManager;
             this.taskEntryService = taskEntryService;
             this.deviceManager = deviceManager;
             this.syncManager = syncManager;
+            this.inputManager = inputManager;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
@@ -97,12 +99,11 @@ public class Aufgabe {
                         // Create database connection
                         jooqManager.startUp(),
 
-                        // Configure IO pins on raspberry pi
-                        raspberryPiManager.startUp(),
-
                         taskEntryService.startUp(),
 
                         syncManager.startUp(),
+
+                        inputManager.startUp(),
 
                         // Start the http server
                         servletManager.start(config.getHttpPort(), routes))

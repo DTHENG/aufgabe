@@ -28,7 +28,7 @@ public class TaskEntryService {
     }
 
     public Observable<Void> startUp() {
-        eventManager.getButtonPressed().addListener(aufgabeContext.getInjector().getInstance(Handlers.ButtonPressed.class));
+        eventManager.getB3F_TactileSwitchInputPressed().addListener(aufgabeContext.getInjector().getInstance(Handlers.ButtonPressed.class));
         return Observable.empty();
     }
 
@@ -48,9 +48,9 @@ public class TaskEntryService {
             }
 
             @Override
-            public void accept(B3F_TactileSwitchInputPressedEvent buttonPressedEvent) {
-                inputManager.get(buttonPressedEvent.getInputId())
-                    .flatMap(input -> taskEntryManager.create(new TaskEntryCreateRequest(input.getTaskId())))
+            public void accept(B3F_TactileSwitchInputPressedEvent event) {
+                inputManager.get(event.getInputId())
+                    .flatMap(input -> taskEntryManager.create(new TaskEntryCreateRequest(input.getTaskId(), input.getId())))
                     .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId()))
                     .subscribe(Void -> {},
                         error -> log.error(error.toString()));

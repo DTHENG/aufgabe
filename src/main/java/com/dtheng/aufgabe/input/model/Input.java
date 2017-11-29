@@ -23,4 +23,6 @@ public class Input {
     private String device;
     private Optional<Date> removedAt = Optional.empty();
     private Class<? extends InputHandler> handler;
+    private Optional<Date> updatedAt = Optional.empty();
+    private Optional<Date> syncedAt = Optional.empty();
 }

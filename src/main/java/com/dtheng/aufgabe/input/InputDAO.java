@@ -93,6 +93,12 @@ class InputDAO {
                     where.add((field("ioPin").eq(request.getIoPin().get())));
                 if (request.getHandler().isPresent())
                     where.add(field("handler").eq(request.getHandler().get()));
+                if (request.isOnlyShowNeedSync())
+                    where.add(
+                        field("updatedAt").isNotNull()
+                            .and(field("syncedAt").isNull()
+                                .or(field("updatedAt").greaterThan(field("syncedAt")))));
+
                 int total = connection.selectCount()
                     .from(TABLE)
                     .where(where)
@@ -114,6 +120,28 @@ class InputDAO {
             });
     }
 
+    Observable<Input> setUpdatedAt(String id, Date updatedAt) {
+        return jooqManager.getConnection()
+            .flatMap(connection -> {
+                connection.update(TABLE)
+                    .set(field("updatedAt"), updatedAt)
+                    .where(field("id").eq(id))
+                    .execute();
+                return getInput(id);
+            });
+    }
+
+    Observable<Input> setSyncedAt(String id, Date syncedAt) {
+        return jooqManager.getConnection()
+            .flatMap(connection -> {
+                connection.update(TABLE)
+                    .set(field("syncedAt"), syncedAt)
+                    .where(field("id").eq(id))
+                    .execute();
+                return getInput(id);
+            });
+    }
+
     private Observable<Input> toInput(Record record) {
         try {
             Date removedAt = null;
@@ -124,6 +152,12 @@ class InputDAO {
             if (! (rawClass.newInstance() instanceof InputHandler))
                 return Observable.error(new RuntimeException("Not an instance of InputHandler! "+ className));
             Class<? extends InputHandler> handler = Class.forName(record.getValue("handler").toString()).asSubclass(InputHandler.class);
+            Date updatedAt = null;
+            if (record.getValue("updatedAt") != null)
+                updatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("updatedAt").toString());
+            Date syncedAt = null;
+            if (record.getValue("syncedAt") != null)
+                syncedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("syncedAt").toString());
             return Observable.just(new Input(
                 record.getValue("id").toString(),
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
@@ -131,7 +165,9 @@ class InputDAO {
                 record.getValue("taskId").toString(),
                 record.getValue("device").toString(),
                 Optional.ofNullable(removedAt),
-                handler));
+                handler,
+                Optional.ofNullable(updatedAt),
+                Optional.ofNullable(syncedAt)));
         } catch (Throwable throwable) {
             return Observable.error(throwable);
         }

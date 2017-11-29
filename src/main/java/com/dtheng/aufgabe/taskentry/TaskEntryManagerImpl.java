@@ -46,6 +46,7 @@ public class TaskEntryManagerImpl implements TaskEntryManager {
                 entry.setId("entry-"+ new RandomString(8).nextString());
                 entry.setCreatedAt(new Date());
                 entry.setTaskId(request.getTaskId());
+                entry.setInputId(request.getInputId());
                 return taskEntryDAO.createTaskEntry(entry);
             });
     }

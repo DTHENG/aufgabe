@@ -11,6 +11,9 @@ import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.dtheng.aufgabe.stats.dto.StatsDefaultResponse;
 import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.task.dto.AggregateTask;
+import com.dtheng.aufgabe.task.dto.AggregateTasksResponse;
+import com.dtheng.aufgabe.task.dto.TasksRequest;
+import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
@@ -27,9 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -57,13 +58,14 @@ public class StatsApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             Observable.zip(
-                getListOfInputs().toList(),
-                taskEntryManager.get(new EntriesRequest())
-                    .map(EntriesResponse::getEntries)
-                    .flatMap(taskEntries -> Observable.from(taskEntries)
-                        .flatMap(entry -> taskManager.get(entry.getTaskId())
-                            .flatMap(task -> toAggregateTaskEntry(entry, task)))
-                        .toList()),
+                    getListOfInputs().toList(),
+                    taskEntryManager.get(new EntriesRequest())
+                        .map(EntriesResponse::getEntries)
+                        .flatMap(taskEntries -> Observable.from(taskEntries)
+                            .flatMap(entry -> taskManager.get(entry.getTaskId())
+                                .flatMap(task -> toAggregateTaskEntry(entry, task)))
+                            .toList()),
+                    buildTotalsMap(),
                 StatsDefaultResponse::new)
                 .defaultIfEmpty(null)
                 .flatMap(body -> ResponseUtil.set(resp, Optional.ofNullable(body), 200))
@@ -75,13 +77,30 @@ public class StatsApi {
                     });
         }
 
+        private Observable<Map<String, Integer>> buildTotalsMap() {
+            return Observable.zip(taskEntryManager.get(new EntriesRequest()).map(EntriesResponse::getTotal),
+                taskManager.get(new TasksRequest()).map(AggregateTasksResponse::getTotal),
+                inputManager.get(new InputsRequest()).map(InputsResponse::getTotal),
+                (totalEntries, totalTasks, totalInputs) -> {
+                    Map<String, Integer> totals = new HashMap<>();
+                    totals.put("entries", totalEntries);
+                    totals.put("tasks", totalTasks);
+                    totals.put("inputs", totalInputs);
+                    return totals;
+                });
+        }
+
         private Observable<JsonNode> toAggregateTaskEntry(TaskEntry entry, AggregateTask task) {
             return configManager.getConfig()
                 .map(configuration -> {
                     ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.findAndRegisterModules();
                     ObjectNode node = objectMapper.valueToTree(entry);
                     node.remove("taskId");
+                    node.remove("inputId");
                     node.remove("createdAt");
+                    node.remove("updatedAt");
+                    node.remove("syncedAt");
                     node.put("task", task.getTask().getDescription());
                     long timeZoneOffset = TimeZone.getTimeZone(configuration.getTimeZone()).getRawOffset();
                     Date adjustedDate = new Date(entry.getCreatedAt().getTime() + timeZoneOffset);

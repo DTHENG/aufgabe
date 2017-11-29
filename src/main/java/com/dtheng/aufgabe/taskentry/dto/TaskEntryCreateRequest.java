@@ -13,4 +13,5 @@ import lombok.*;
 public class TaskEntryCreateRequest {
 
 	private String taskId;
+    private String inputId;
 }
