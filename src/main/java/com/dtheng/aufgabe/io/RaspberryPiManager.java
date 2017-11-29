@@ -1,6 +1,5 @@
 package com.dtheng.aufgabe.io;
 
-import com.dtheng.aufgabe.button.model.Button;
 import com.google.inject.ImplementedBy;
 import rx.Observable;
 

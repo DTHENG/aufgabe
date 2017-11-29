@@ -15,7 +15,7 @@ import lombok.*;
 public class AufgabePinListenerDigital implements GpioPinListenerDigital {
 
     @Setter
-    private String buttonId;
+    private String inputId;
 
     private EventManager eventManager;
 
@@ -27,6 +27,6 @@ public class AufgabePinListenerDigital implements GpioPinListenerDigital {
     @Override
     public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
         if (event.getState() == PinState.HIGH)
-            eventManager.getButtonPressed().trigger(new ButtonPressedEvent(buttonId));
+            eventManager.getButtonPressed().trigger(new ButtonPressedEvent(inputId));
     }
 }

@@ -1,8 +1,8 @@
 package com.dtheng.aufgabe.task;
 
-import com.dtheng.aufgabe.button.ButtonManager;
-import com.dtheng.aufgabe.button.dto.ButtonsRequest;
-import com.dtheng.aufgabe.button.dto.ButtonsResponse;
+import com.dtheng.aufgabe.input.InputManager;
+import com.dtheng.aufgabe.input.dto.InputsRequest;
+import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.Configuration;
 import com.dtheng.aufgabe.config.model.DeviceType;
@@ -28,15 +28,15 @@ import java.util.Optional;
 public class TaskManagerImpl implements TaskManager {
 
     private TaskDAO taskDAO;
-    private ButtonManager buttonManager;
+    private InputManager inputManager;
     private TaskEntryManager taskEntryManager;
     private SyncManager syncManager;
     private ConfigManager configManager;
 
     @Inject
-    public TaskManagerImpl(TaskDAO taskDAO, ButtonManager buttonManager, TaskEntryManager taskEntryManager, SyncManager syncManager, ConfigManager configManager) {
+    public TaskManagerImpl(TaskDAO taskDAO, InputManager inputManager, TaskEntryManager taskEntryManager, SyncManager syncManager, ConfigManager configManager) {
         this.taskDAO = taskDAO;
-        this.buttonManager = buttonManager;
+        this.inputManager = inputManager;
         this.taskEntryManager = taskEntryManager;
         this.syncManager = syncManager;
         this.configManager = configManager;
@@ -82,15 +82,15 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     private Observable<AggregateTask> aggregate(Task task) {
-        ButtonsRequest buttonsRequest = new ButtonsRequest();
-        buttonsRequest.setOffset(0);
-        buttonsRequest.setLimit(10);
-        buttonsRequest.setTaskId(Optional.of(task.getId()));
+        InputsRequest inputsRequest = new InputsRequest();
+        inputsRequest.setOffset(0);
+        inputsRequest.setLimit(10);
+        inputsRequest.setTaskId(Optional.of(task.getId()));
         return Observable.zip(
-            buttonManager.get(buttonsRequest)
-                .map(ButtonsResponse::getButtons),
+            inputManager.get(inputsRequest)
+                .map(InputsResponse::getInputs),
             taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId())))
                 .map(EntriesResponse::getEntries),
-            (buttons, entries) -> new AggregateTask(task, entries, buttons)) ;
+            (inputs, entries) -> new AggregateTask(task, entries, inputs)) ;
     }
 }

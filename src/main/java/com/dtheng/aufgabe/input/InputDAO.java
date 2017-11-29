@@ -1,7 +1,7 @@
-package com.dtheng.aufgabe.button;
+package com.dtheng.aufgabe.input;
 
-import com.dtheng.aufgabe.button.dto.*;
-import com.dtheng.aufgabe.button.model.Button;
+import com.dtheng.aufgabe.input.dto.*;
+import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.google.inject.Inject;
@@ -22,36 +22,36 @@ import static org.jooq.impl.DSL.*;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-class ButtonDAO {
+class InputDAO {
 
-    private static final Table<Record> TABLE = table("button");
+    private static final Table<Record> TABLE = table("input");
 
     private JooqManager jooqManager;
 
     @Inject
-    public ButtonDAO(JooqManager jooqManager) {
+    public InputDAO(JooqManager jooqManager) {
         this.jooqManager = jooqManager;
     }
 
-    Observable<Button> createButton(Button button) {
+    Observable<Input> createInput(Input input) {
         return jooqManager.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
-                .set(field("id"), button.getId())
-                .set(field("ioPin"), button.getIoPin())
-                .set(field("taskId"), button.getTaskId())
-                .set(field("device"), button.getDevice())
+                .set(field("id"), input.getId())
+                .set(field("ioPin"), input.getIoPin())
+                .set(field("taskId"), input.getTaskId())
+                .set(field("device"), input.getDevice())
                 .execute())
-            .flatMap(Void -> getButton(button.getId()));
+            .flatMap(Void -> getInput(input.getId()));
     }
 
-    Observable<Button> getButton(String id) {
+    Observable<Input> getInput(String id) {
         return jooqManager.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
                 .where(field("id").eq(id))
                 .fetch()))
             .retryWhen(e -> e.flatMap(throwable -> {
-                log.info("Got error looking up button {}, {}", id, throwable.toString());
+                log.info("Got error looking up input {}, {}", id, throwable.toString());
                 if (throwable instanceof DataAccessException)
                     return Observable.just(null);
                 return Observable.error(throwable);
@@ -59,15 +59,15 @@ class ButtonDAO {
             .defaultIfEmpty(null)
             .flatMap(record -> {
                 if (record == null) {
-                    log.error("Button not found, id: {}", id);
-                    return Observable.error(new AufgabeException("Button not found"));
+                    log.error("Input not found, id: {}", id);
+                    return Observable.error(new AufgabeException("Input not found"));
                 }
                 return Observable.just(record);
             })
-            .flatMap(this::toButton);
+            .flatMap(this::toInput);
     }
 
-    Observable<Void> removeButton(String id) {
+    Observable<Void> removeInput(String id) {
         return jooqManager.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
@@ -78,7 +78,7 @@ class ButtonDAO {
             });
     }
 
-    Observable<ButtonsResponse> getButtons(ButtonsRequest request) {
+    Observable<InputsResponse> getInputs(InputsRequest request) {
         return jooqManager.getConnection()
             .flatMap(connection -> {
 
@@ -105,15 +105,15 @@ class ButtonDAO {
                     .offset(request.getOffset())
                     .limit(request.getLimit())
                     .fetch())
-                    .concatMap(this::toButton)
+                    .concatMap(this::toInput)
                     .toList()
-                    .map(list -> new ButtonsResponse(request.getOffset(), request.getLimit(), total, list));
+                    .map(list -> new InputsResponse(request.getOffset(), request.getLimit(), total, list));
             });
     }
 
-    private Observable<Button> toButton(Record record) {
+    private Observable<Input> toInput(Record record) {
         try {
-            return Observable.just(new Button(
+            return Observable.just(new Input(
                 record.getValue("id").toString(),
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
                 record.getValue("ioPin").toString(),

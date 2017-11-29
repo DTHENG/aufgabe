@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.button.model;
+package com.dtheng.aufgabe.input.model;
 
 import lombok.*;
 
@@ -13,7 +13,7 @@ import java.util.Optional;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class Button {
+public class Input {
 
     private String id;
     private Date createdAt;

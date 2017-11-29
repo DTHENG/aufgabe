@@ -12,5 +12,5 @@ import lombok.*;
 @NoArgsConstructor
 public class ButtonPressedEvent {
 
-    private String buttonId;
+    private String inputId;
 }

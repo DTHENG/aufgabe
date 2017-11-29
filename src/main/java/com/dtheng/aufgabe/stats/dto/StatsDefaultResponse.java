@@ -16,6 +16,6 @@ import java.util.List;
 @NoArgsConstructor
 public class StatsDefaultResponse {
 
-    private List<String> activeButtons = new ArrayList<>();
+    private List<String> activeInputs = new ArrayList<>();
     private List<JsonNode> last10Entries = new ArrayList<>();
 }

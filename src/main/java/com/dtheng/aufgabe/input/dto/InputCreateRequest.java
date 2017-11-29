@@ -1,6 +1,5 @@
-package com.dtheng.aufgabe.button.dto;
+package com.dtheng.aufgabe.input.dto;
 
-import com.pi4j.io.gpio.RaspiPin;
 import lombok.*;
 
 /**
@@ -11,7 +10,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ButtonCreateRequest {
+public class InputCreateRequest {
 
     private String ioPin;
     private String  taskId;

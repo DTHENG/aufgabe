@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe;
 
-import com.dtheng.aufgabe.button.ButtonApi;
+import com.dtheng.aufgabe.input.InputApi;
 import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.device.DeviceManager;
@@ -80,12 +80,12 @@ public class Aufgabe {
                     routes.put("/task", TaskApi.CreateTask.class);
                     routes.put("/tasks", TaskApi.Tasks.class);
                     routes.put("/taskFromId/*", TaskApi.GetTask.class);
-                    routes.put("/button", ButtonApi.CreateButton.class);
-                    routes.put("/buttons", ButtonApi.Buttons.class);
-                    routes.put("/buttonFromId/*", ButtonApi.GetButton.class);
-                    routes.put("/removeButton/*", ButtonApi.RemoveButton.class);
+                    routes.put("/input", InputApi.CreateCreate.class);
+                    routes.put("/inputs", InputApi.Inputs.class);
+                    routes.put("/inputFromId/*", InputApi.GetInput.class);
+                    routes.put("/removeInput/*", InputApi.RemoveInput.class);
 
-                    routes.put("/config", ConfigApi.ButtonConfig.class);
+                    routes.put("/config", ConfigApi.InputConfig.class);
                     routes.put("/stats", StatsApi.Default.class);
 
                     routes.put("/sync/task", SyncApi.SyncTask.class);

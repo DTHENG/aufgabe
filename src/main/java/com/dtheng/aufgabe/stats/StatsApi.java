@@ -1,8 +1,8 @@
 package com.dtheng.aufgabe.stats;
 
-import com.dtheng.aufgabe.button.ButtonManager;
-import com.dtheng.aufgabe.button.dto.ButtonsRequest;
-import com.dtheng.aufgabe.button.dto.ButtonsResponse;
+import com.dtheng.aufgabe.input.InputManager;
+import com.dtheng.aufgabe.input.dto.InputsRequest;
+import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
@@ -40,15 +40,15 @@ public class StatsApi {
     public static class Default extends AufgabeServlet {
 
         private DeviceManager deviceManager;
-        private ButtonManager buttonManager;
+        private InputManager inputManager;
         private TaskManager taskManager;
         private TaskEntryManager taskEntryManager;
         private ConfigManager configManager;
 
         @Inject
-        public Default(DeviceManager deviceManager, ButtonManager buttonManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager) {
+        public Default(DeviceManager deviceManager, InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager) {
             this.deviceManager = deviceManager;
-            this.buttonManager = buttonManager;
+            this.inputManager = inputManager;
             this.taskManager = taskManager;
             this.taskEntryManager = taskEntryManager;
             this.configManager = configManager;
@@ -57,7 +57,7 @@ public class StatsApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             Observable.zip(
-                getListOfButtons().toList(),
+                getListOfInputs().toList(),
                 taskEntryManager.get(new EntriesRequest())
                     .map(EntriesResponse::getEntries)
                     .flatMap(taskEntries -> Observable.from(taskEntries)
@@ -90,19 +90,19 @@ public class StatsApi {
                 });
         }
 
-        private Observable<String> getListOfButtons() {
+        private Observable<String> getListOfInputs() {
             return deviceManager.getDeviceId()
                 .flatMap(deviceId -> {
-                    ButtonsRequest buttonsRequest = new ButtonsRequest();
-                    buttonsRequest.setLimit(100);
-                    buttonsRequest.setDevice(Optional.of(deviceId));
-                    buttonsRequest.setOrderBy(Optional.of("ioPin"));
-                    buttonsRequest.setOrderDirection(Optional.of("asc"));
-                    return buttonManager.get(buttonsRequest);
+                    InputsRequest inputsRequest = new InputsRequest();
+                    inputsRequest.setLimit(100);
+                    inputsRequest.setDevice(Optional.of(deviceId));
+                    inputsRequest.setOrderBy(Optional.of("ioPin"));
+                    inputsRequest.setOrderDirection(Optional.of("asc"));
+                    return inputManager.get(inputsRequest);
                 })
-                .map(ButtonsResponse::getButtons)
+                .map(InputsResponse::getInputs)
                 .flatMap(Observable::from)
-                .concatMap(button -> taskManager.get(button.getTaskId())
+                .concatMap(input -> taskManager.get(input.getTaskId())
                     .map(task -> task.getTask().getDescription()));
         }
     }

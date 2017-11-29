@@ -1,8 +1,8 @@
 package com.dtheng.aufgabe.config;
 
-import com.dtheng.aufgabe.button.ButtonManager;
-import com.dtheng.aufgabe.button.dto.ButtonsRequest;
-import com.dtheng.aufgabe.button.dto.ButtonsResponse;
+import com.dtheng.aufgabe.input.InputManager;
+import com.dtheng.aufgabe.input.dto.InputsRequest;
+import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
@@ -24,15 +24,15 @@ import java.util.Optional;
 @Slf4j
 public class ConfigApi {
 
-    public static class ButtonConfig extends AufgabeServlet {
+    public static class InputConfig extends AufgabeServlet {
 
-        private ButtonManager buttonManager;
+        private InputManager inputManager;
         private DeviceManager deviceManager;
         private TaskManager taskManager;
 
         @Inject
-        public ButtonConfig(ButtonManager buttonManager, DeviceManager deviceManager, TaskManager taskManager) {
-            this.buttonManager = buttonManager;
+        public InputConfig(InputManager inputManager, DeviceManager deviceManager, TaskManager taskManager) {
+            this.inputManager = inputManager;
             this.deviceManager = deviceManager;
             this.taskManager = taskManager;
         }
@@ -41,16 +41,16 @@ public class ConfigApi {
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             deviceManager.getDeviceId()
                 .flatMap(deviceId -> {
-                    ButtonsRequest buttonsRequest = new ButtonsRequest();
-                    buttonsRequest.setLimit(100);
-                    buttonsRequest.setDevice(Optional.of(deviceId));
-                    buttonsRequest.setOrderBy(Optional.of("ioPin"));
-                    buttonsRequest.setOrderDirection(Optional.of("asc"));
-                    return buttonManager.get(buttonsRequest);
+                    InputsRequest inputsRequest = new InputsRequest();
+                    inputsRequest.setLimit(100);
+                    inputsRequest.setDevice(Optional.of(deviceId));
+                    inputsRequest.setOrderBy(Optional.of("ioPin"));
+                    inputsRequest.setOrderDirection(Optional.of("asc"));
+                    return inputManager.get(inputsRequest);
                 })
-                .map(ButtonsResponse::getButtons)
+                .map(InputsResponse::getInputs)
                 .flatMap(Observable::from)
-                .concatMap(button -> taskManager.get(button.getTaskId())
+                .concatMap(input -> taskManager.get(input.getTaskId())
                     .map(task -> task.getTask().getDescription()))
                 .toList()
                 .defaultIfEmpty(null)

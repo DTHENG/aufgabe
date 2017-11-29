@@ -15,20 +15,16 @@ CREATE TABLE task (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     description TEXT NOT NULL,
-    updatedAt TIMESTAMP NOT NULL,
-    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 
-CREATE TABLE button (
+CREATE TABLE input (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL,
     ioPin VARCHAR(128) NOT NULL,
     device VARCHAR(128) NOT NULL,
     taskId VARCHAR(128) NOT NULL,
     removedAt TIMESTAMP NULL,
-    updatedAt TIMESTAMP NOT NULL,
-    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
 

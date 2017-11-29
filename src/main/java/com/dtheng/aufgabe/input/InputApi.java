@@ -1,8 +1,7 @@
-package com.dtheng.aufgabe.button;
+package com.dtheng.aufgabe.input;
 
-import com.dtheng.aufgabe.button.ButtonManager;
-import com.dtheng.aufgabe.button.dto.ButtonCreateRequest;
-import com.dtheng.aufgabe.button.dto.ButtonsRequest;
+import com.dtheng.aufgabe.input.dto.InputCreateRequest;
+import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.Configuration;
 import com.dtheng.aufgabe.config.model.DeviceType;
@@ -26,25 +25,25 @@ import java.util.Optional;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class ButtonApi {
+public class InputApi {
 
-    public static class Buttons extends AufgabeServlet {
+    public static class Inputs extends AufgabeServlet {
 
-        private ButtonManager buttonManager;
+        private InputManager inputManager;
 
         @Inject
-        public Buttons(ButtonManager buttonManager) {
-            this.buttonManager = buttonManager;
+        public Inputs(InputManager inputManager) {
+            this.inputManager = inputManager;
         }
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            RequestUtil.getBody(req, ButtonsRequest.class)
+            RequestUtil.getBody(req, InputsRequest.class)
                 .defaultIfEmpty(null)
                 .flatMap(request -> {
                     if (request == null)
                         return Observable.error(new AufgabeException("Invalid request"));
-                    return buttonManager.get(request);
+                    return inputManager.get(request);
                 })
                 .defaultIfEmpty(null)
                 .flatMap(entries -> ResponseUtil.set(resp, Optional.ofNullable(entries), 200))
@@ -57,18 +56,18 @@ public class ButtonApi {
         }
     }
 
-    public static class GetButton extends AufgabeServlet {
+    public static class GetInput extends AufgabeServlet {
 
-        private ButtonManager buttonManager;
+        private InputManager inputManager;
 
         @Inject
-        public GetButton(ButtonManager buttonManager) {
-            this.buttonManager = buttonManager;
+        public GetInput(InputManager inputManager) {
+            this.inputManager = inputManager;
         }
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            buttonManager.get(req.getPathInfo().substring(1, req.getPathInfo().length()))
+            inputManager.get(req.getPathInfo().substring(1, req.getPathInfo().length()))
                 .defaultIfEmpty(null)
                 .flatMap(taskEntry -> ResponseUtil.set(resp, Optional.ofNullable(taskEntry), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
@@ -80,14 +79,14 @@ public class ButtonApi {
         }
     }
 
-    public static class CreateButton extends AufgabeServlet {
+    public static class CreateCreate extends AufgabeServlet {
 
-        private ButtonManager buttonManager;
+        private InputManager inputManager;
         private ConfigManager configManager;
 
         @Inject
-        public CreateButton(ButtonManager buttonManager, ConfigManager configManager) {
-            this.buttonManager = buttonManager;
+        public CreateCreate(InputManager inputManager, ConfigManager configManager) {
+            this.inputManager = inputManager;
             this.configManager = configManager;
         }
 
@@ -98,12 +97,12 @@ public class ButtonApi {
                 .flatMap(deviceType -> {
                     if (deviceType != DeviceType.RASPBERRY_PI)
                         return Observable.error(new UnsupportedException());
-                    return RequestUtil.getBody(req, ButtonCreateRequest.class)
+                    return RequestUtil.getBody(req, InputCreateRequest.class)
                         .defaultIfEmpty(null)
                         .flatMap(request -> {
                             if (request == null)
                                 return Observable.error(new AufgabeException("Invalid request"));
-                            return buttonManager.create(request);
+                            return inputManager.create(request);
                         });
                 })
                 .defaultIfEmpty(null)
@@ -117,14 +116,14 @@ public class ButtonApi {
         }
     }
 
-    public static class RemoveButton extends AufgabeServlet {
+    public static class RemoveInput extends AufgabeServlet {
 
-        private ButtonManager buttonManager;
+        private InputManager inputManager;
         private ConfigManager configManager;
 
         @Inject
-        public RemoveButton(ButtonManager buttonManager, ConfigManager configManager) {
-            this.buttonManager = buttonManager;
+        public RemoveInput(InputManager inputManager, ConfigManager configManager) {
+            this.inputManager = inputManager;
             this.configManager = configManager;
         }
 
@@ -135,10 +134,10 @@ public class ButtonApi {
                 .flatMap(deviceType -> {
                     if (deviceType != DeviceType.RASPBERRY_PI)
                         return Observable.error(new UnsupportedException());
-                    return buttonManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length()));
+                    return inputManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length()));
                 })
                 .defaultIfEmpty(null)
-                .flatMap(button -> ResponseUtil.set(resp, Optional.ofNullable(button), 200))
+                .flatMap(input -> ResponseUtil.set(resp, Optional.ofNullable(input), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {},
                     error -> {
