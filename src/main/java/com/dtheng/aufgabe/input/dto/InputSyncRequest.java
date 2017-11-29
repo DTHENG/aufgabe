@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.input.dto;
 
+import com.dtheng.aufgabe.input.InputHandler;
 import lombok.*;
 
 import java.util.Date;
@@ -13,12 +14,12 @@ import java.util.Optional;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class InputCreateRequest {
+public class InputSyncRequest {
 
+    private String id;
+    private long createdAt;
     private String ioPin;
-    private String taskId;
+    private String  taskId;
+    private String device;
     private String handler;
-    private Optional<Date> createdAt = Optional.empty();
-    private Optional<String> id = Optional.empty();
-    private Optional<String> device = Optional.empty();
 }

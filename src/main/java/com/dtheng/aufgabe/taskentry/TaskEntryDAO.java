@@ -41,6 +41,7 @@ class TaskEntryDAO {
         return jooqManager.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), entry.getId())
+                .set(field("createdAt"), entry.getCreatedAt())
                 .set(field("taskId"), entry.getTaskId())
                 .set(field("inputId"), entry.getInputId())
                 .execute())
@@ -73,9 +74,10 @@ class TaskEntryDAO {
                     where.add(field("taskId").eq(request.getTaskId().get()));
                 if (request.isOnlyShowNeedSync())
                     where.add(
-                        field("updatedAt").isNotNull()
+                        field("updatedAt").isNull()
                             .and(field("syncedAt").isNull()
-                                .or(field("updatedAt").greaterThan(field("syncedAt")))));
+                                .or(field("updatedAt").isNotNull()
+                                    .and(field("updatedAt").greaterThan(field("syncedAt"))))));
 
                 int total = connection.selectCount()
                     .from(TABLE)

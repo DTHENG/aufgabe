@@ -4,7 +4,7 @@ USE aufgabe;
 
 CREATE TABLE task_entry (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     taskId VARCHAR(128) NOT NULL,
     inputId VARCHAR(128) NOT NULL,
     updatedAt TIMESTAMP NULL,
@@ -14,7 +14,7 @@ CREATE TABLE task_entry (
 
 CREATE TABLE task (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     description TEXT NOT NULL,
     updatedAt TIMESTAMP NULL,
     syncedAt TIMESTAMP NULL,
@@ -23,7 +23,7 @@ CREATE TABLE task (
 
 CREATE TABLE input (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ioPin VARCHAR(128) NOT NULL,
     device VARCHAR(128) NOT NULL,
     taskId VARCHAR(128) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE input (
 
 CREATE TABLE sync_entry (
     id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     startedAt TIMESTAMP NULL,
     completedAt TIMESTAMP NULL,
     numberOfRecordsSynced INT NULL,

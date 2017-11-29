@@ -95,9 +95,10 @@ class InputDAO {
                     where.add(field("handler").eq(request.getHandler().get()));
                 if (request.isOnlyShowNeedSync())
                     where.add(
-                        field("updatedAt").isNotNull()
+                        field("updatedAt").isNull()
                             .and(field("syncedAt").isNull()
-                                .or(field("updatedAt").greaterThan(field("syncedAt")))));
+                                .or(field("updatedAt").isNotNull()
+                                    .and(field("updatedAt").greaterThan(field("syncedAt"))))));
 
                 int total = connection.selectCount()
                     .from(TABLE)

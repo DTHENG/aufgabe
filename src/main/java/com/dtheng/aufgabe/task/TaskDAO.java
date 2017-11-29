@@ -68,9 +68,10 @@ class TaskDAO {
                 List<Condition> where = new ArrayList<>();
                 if (request.isOnlyShowNeedSync())
                     where.add(
-                        field("updatedAt").isNotNull()
+                        field("updatedAt").isNull()
                             .and(field("syncedAt").isNull()
-                                .or(field("updatedAt").greaterThan(field("syncedAt")))));
+                                .or(field("updatedAt").isNotNull()
+                                    .and(field("updatedAt").greaterThan(field("syncedAt"))))));
                 int total = connection.selectCount()
                     .from(TABLE)
                     .where(where)

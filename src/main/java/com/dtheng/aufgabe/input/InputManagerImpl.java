@@ -9,6 +9,7 @@ import com.dtheng.aufgabe.config.model.DeviceType;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
+import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.util.RandomString;
 import com.google.inject.Inject;
 import com.pi4j.io.gpio.GpioFactory;
@@ -28,13 +29,15 @@ public class InputManagerImpl implements InputManager {
     private DeviceManager deviceManager;
     private ConfigManager configManager;
     private AufgabeContext aufgabeContext;
+    private SyncManager syncManager;
 
     @Inject
-    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager, AufgabeContext aufgabeContext) {
+    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager, AufgabeContext aufgabeContext, SyncManager syncManager) {
         this.inputDAO = inputDAO;
         this.deviceManager = deviceManager;
         this.configManager = configManager;
         this.aufgabeContext = aufgabeContext;
+        this.syncManager = syncManager;
     }
 
     @Override
@@ -72,15 +75,32 @@ public class InputManagerImpl implements InputManager {
 
     @Override
     public Observable<Input> create(InputCreateRequest request) {
-        return Observable.zip(
-            deviceManager.getDeviceId(),
-            configManager.getConfig().map(Configuration::getDeviceType),
-            (deviceId, deviceType) -> {
-                if (deviceType != DeviceType.RASPBERRY_PI)
-                    throw new UnsupportedException();
-                return checkIfIoPinIsFreeThenCreate(deviceId, request);
-            })
-            .flatMap(o -> o);
+        return deviceManager.getDeviceId()
+            .flatMap(deviceId -> configManager.getConfig().map(Configuration::getDeviceType)
+                .flatMap(deviceType -> {
+                    switch (deviceType) {
+                        case RASPBERRY_PI:
+                            return checkIfIoPinIsFreeThenCreate(deviceId, request);
+                        case EC2_INSTANCE:
+                            try {
+                                Class rawClass = Class.forName(request.getHandler());
+                                try {
+                                    if (! (rawClass.newInstance() instanceof InputHandler))
+                                        return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                                    Class<? extends InputHandler> handler = (Class<? extends InputHandler>) rawClass;
+                                    return inputDAO.createInput(new Input(request.getId().get(), request.getCreatedAt().get(), request.getIoPin(), request.getTaskId(), request.getDevice().get(), Optional.empty(), handler, Optional.empty(), Optional.empty()));
+                                } catch (Exception e) {
+                                    log.error("Got error attempting .newInstance() on class {}", rawClass);
+                                    return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                                }
+                            } catch (ClassNotFoundException cnfe) {
+                                return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                            }
+                        default:
+                            return Observable.error(new UnsupportedException());
+                    }
+                }))
+            .flatMap(this::performSyncRequest);
     }
 
     @Override
@@ -101,6 +121,25 @@ public class InputManagerImpl implements InputManager {
                 .doOnNext(Void -> input.setRemovedAt(Optional.of(new Date())))
                 .map(Void -> input));
     }
+
+    @Override
+    public Observable<Input> performSyncRequest(Input input) {
+        return configManager.getConfig()
+            .map(Configuration::getDeviceType)
+            .flatMap(deviceType -> {
+                if (deviceType == DeviceType.RASPBERRY_PI) {
+                    return syncManager.getSyncClient()
+                        .flatMap(syncClient -> Observable.defer(() ->
+                            Observable.just(
+                                syncClient.syncInput(new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName()))
+                                    .toBlocking().single()))
+                            .defaultIfEmpty(null)
+                            .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date())));
+                }
+                return Observable.just(input);
+            });
+    }
+
 
     private Observable<Input> checkIfIoPinIsFreeThenCreate(String deviceId, InputCreateRequest request) {
         InputsRequest existingInputRequest = new InputsRequest();

@@ -20,4 +20,6 @@ public interface InputManager {
     Observable<Input> create(InputCreateRequest request);
 
     Observable<Input> remove(String id);
+
+    Observable<Input> performSyncRequest(Input task);
 }

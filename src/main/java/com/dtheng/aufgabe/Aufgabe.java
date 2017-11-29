@@ -5,6 +5,7 @@ import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.input.InputManager;
+import com.dtheng.aufgabe.input.InputService;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
@@ -13,6 +14,7 @@ import com.dtheng.aufgabe.stats.StatsApi;
 import com.dtheng.aufgabe.sync.SyncApi;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.TaskApi;
+import com.dtheng.aufgabe.task.TaskService;
 import com.dtheng.aufgabe.taskentry.EntryApi;
 import com.dtheng.aufgabe.taskentry.TaskEntryService;
 import com.google.inject.*;
@@ -55,10 +57,12 @@ public class Aufgabe {
         private DeviceManager deviceManager;
         private SyncManager syncManager;
         private InputManager inputManager;
+        private TaskService taskService;
+        private InputService inputService;
 
         @Inject
         public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, TaskEntryService taskEntryService,
-                       DeviceManager deviceManager, SyncManager syncManager, InputManager inputManager) {
+                       DeviceManager deviceManager, SyncManager syncManager, InputManager inputManager, TaskService taskService, InputService inputService) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.jooqManager = jooqManager;
@@ -66,6 +70,8 @@ public class Aufgabe {
             this.deviceManager = deviceManager;
             this.syncManager = syncManager;
             this.inputManager = inputManager;
+            this.taskService = taskService;
+            this.inputService = inputService;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
@@ -91,6 +97,9 @@ public class Aufgabe {
                     routes.put("/stats", StatsApi.Default.class);
 
                     routes.put("/sync/task", SyncApi.SyncTask.class);
+                    routes.put("/sync/entry", SyncApi.SyncEntry.class);
+                    routes.put("/sync/input", SyncApi.SyncInput.class);
+
 
                     return Observable.concat(Arrays.asList(
 
@@ -99,6 +108,8 @@ public class Aufgabe {
                         // Create database connection
                         jooqManager.startUp(),
 
+                        inputService.startUp(),
+                        taskService.startUp(),
                         taskEntryService.startUp(),
 
                         syncManager.startUp(),
