@@ -49,4 +49,11 @@ public class JooqManagerImpl implements JooqManager {
     public Observable<DSLContext> getConnection() {
         return Observable.just(DSL.using(configuration));
     }
+
+    @Override
+    public Observable<DSLContext> reconnect() {
+        return startUp()
+            .defaultIfEmpty(null)
+            .flatMap(Void -> getConnection());
+    }
 }

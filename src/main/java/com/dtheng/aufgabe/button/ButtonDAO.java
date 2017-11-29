@@ -7,6 +7,7 @@ import com.dtheng.aufgabe.jooq.JooqManager;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.*;
+import org.jooq.exception.DataAccessException;
 import rx.Observable;
 
 import java.text.SimpleDateFormat;
@@ -49,6 +50,12 @@ class ButtonDAO {
                 .from(TABLE)
                 .where(field("id").eq(id))
                 .fetch()))
+            .retryWhen(e -> e.flatMap(throwable -> {
+                log.info("Got error looking up button {}, {}", id, throwable.toString());
+                if (throwable instanceof DataAccessException)
+                    return Observable.just(null);
+                return Observable.error(throwable);
+            }))
             .defaultIfEmpty(null)
             .flatMap(record -> {
                 if (record == null) {
