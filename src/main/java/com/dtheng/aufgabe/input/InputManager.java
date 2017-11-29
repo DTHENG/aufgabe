@@ -11,6 +11,8 @@ import rx.Observable;
 @ImplementedBy(InputManagerImpl.class)
 public interface InputManager {
 
+    Observable<Void> startUp();
+
     Observable<Input> get(String id);
 
     Observable<InputsResponse> get(InputsRequest request);

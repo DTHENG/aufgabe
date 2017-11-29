@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.input.model;
 
+import com.dtheng.aufgabe.input.InputHandler;
 import lombok.*;
 
 import java.util.Date;
@@ -20,5 +21,6 @@ public class Input {
     private String ioPin;
     private String  taskId;
     private String device;
-    private Optional<Date> removedAt;
+    private Optional<Date> removedAt = Optional.empty();
+    private Class<? extends InputHandler> handler;
 }

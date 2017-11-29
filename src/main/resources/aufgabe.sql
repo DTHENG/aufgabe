@@ -25,6 +25,7 @@ CREATE TABLE input (
     device VARCHAR(128) NOT NULL,
     taskId VARCHAR(128) NOT NULL,
     removedAt TIMESTAMP NULL,
+    handler VARCHAR(128) NOT NULL,
     PRIMARY KEY(id)
 );
 

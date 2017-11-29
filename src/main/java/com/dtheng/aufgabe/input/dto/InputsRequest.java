@@ -22,4 +22,5 @@ public class InputsRequest {
     private Optional<String> ioPin = Optional.empty();
     private Optional<String> orderBy = Optional.empty();
     private Optional<String> orderDirection = Optional.empty();
+    private Optional<String> handler = Optional.empty();
 }

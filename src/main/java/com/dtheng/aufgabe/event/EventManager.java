@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.event;
 
-import com.dtheng.aufgabe.io.event.ButtonPressedEvent;
+import com.dtheng.aufgabe.io.event.B3F_TactileSwitchInputPressedEvent;
 import com.google.inject.ImplementedBy;
 import com.pploder.events.Event;
 
@@ -10,5 +10,5 @@ import com.pploder.events.Event;
 @ImplementedBy(EventManagerImpl.class)
 public interface EventManager {
 
-    Event<ButtonPressedEvent> getButtonPressed();
+    Event<B3F_TactileSwitchInputPressedEvent> getButtonPressed();
 }

@@ -3,7 +3,7 @@ package com.dtheng.aufgabe.taskentry;
 import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.event.EventManager;
-import com.dtheng.aufgabe.io.event.ButtonPressedEvent;
+import com.dtheng.aufgabe.io.event.B3F_TactileSwitchInputPressedEvent;
 import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.taskentry.dto.TaskEntryCreateRequest;
 import com.google.inject.Inject;
@@ -34,7 +34,7 @@ public class TaskEntryService {
 
     private static class Handlers {
 
-        public static class ButtonPressed implements Consumer<ButtonPressedEvent> {
+        public static class ButtonPressed implements Consumer<B3F_TactileSwitchInputPressedEvent> {
 
             private InputManager inputManager;
             private TaskEntryManager taskEntryManager;
@@ -48,7 +48,7 @@ public class TaskEntryService {
             }
 
             @Override
-            public void accept(ButtonPressedEvent buttonPressedEvent) {
+            public void accept(B3F_TactileSwitchInputPressedEvent buttonPressedEvent) {
                 inputManager.get(buttonPressedEvent.getInputId())
                     .flatMap(input -> taskEntryManager.create(new TaskEntryCreateRequest(input.getTaskId())))
                     .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId()))

@@ -37,9 +37,11 @@ class InputDAO {
         return jooqManager.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), input.getId())
+                .set(field("createdAt"), input.getCreatedAt())
                 .set(field("ioPin"), input.getIoPin())
                 .set(field("taskId"), input.getTaskId())
                 .set(field("device"), input.getDevice())
+                .set(field("handler"), input.getHandler().getCanonicalName())
                 .execute())
             .flatMap(Void -> getInput(input.getId()));
     }
@@ -81,7 +83,6 @@ class InputDAO {
     Observable<InputsResponse> getInputs(InputsRequest request) {
         return jooqManager.getConnection()
             .flatMap(connection -> {
-
                 List<Condition> where = new ArrayList<>();
                 where.add(field("removedAt").isNull());
                 if (request.getTaskId().isPresent())
@@ -90,6 +91,8 @@ class InputDAO {
                     where.add(field("device").eq(request.getDevice().get()));
                 if (request.getIoPin().isPresent())
                     where.add((field("ioPin").eq(request.getIoPin().get())));
+                if (request.getHandler().isPresent())
+                    where.add(field("handler").eq(request.getHandler().get()));
                 int total = connection.selectCount()
                     .from(TABLE)
                     .where(where)
@@ -113,13 +116,22 @@ class InputDAO {
 
     private Observable<Input> toInput(Record record) {
         try {
+            Date removedAt = null;
+            if (record.getValue("removedAt") != null)
+                removedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("removedAt").toString());
+            String className = record.getValue("handler").toString();
+            Class rawClass = Class.forName(className);
+            if (! (rawClass.newInstance() instanceof InputHandler))
+                return Observable.error(new RuntimeException("Not an instance of InputHandler! "+ className));
+            Class<? extends InputHandler> handler = Class.forName(record.getValue("handler").toString()).asSubclass(InputHandler.class);
             return Observable.just(new Input(
                 record.getValue("id").toString(),
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
                 record.getValue("ioPin").toString(),
                 record.getValue("taskId").toString(),
                 record.getValue("device").toString(),
-                Optional.ofNullable(record.getValue("removedAt") == null ? null : new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("removedAt").toString()))));
+                Optional.ofNullable(removedAt),
+                handler));
         } catch (Throwable throwable) {
             return Observable.error(throwable);
         }

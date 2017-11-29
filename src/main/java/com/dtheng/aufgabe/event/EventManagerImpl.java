@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.event;
 
-import com.dtheng.aufgabe.io.event.ButtonPressedEvent;
+import com.dtheng.aufgabe.io.event.B3F_TactileSwitchInputPressedEvent;
 import com.google.inject.Singleton;
 import com.pploder.events.Event;
 import com.pploder.events.SimpleEvent;
@@ -13,9 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class EventManagerImpl implements EventManager {
 
-    private final Event<ButtonPressedEvent> buttonPressed = new SimpleEvent<>();
+    private final Event<B3F_TactileSwitchInputPressedEvent> buttonPressed = new SimpleEvent<>();
 
-    public Event<ButtonPressedEvent> getButtonPressed() {
+    public Event<B3F_TactileSwitchInputPressedEvent> getButtonPressed() {
         return buttonPressed;
     }
 }

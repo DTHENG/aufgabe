@@ -10,7 +10,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class ButtonPressedEvent {
+public class B3F_TactileSwitchInputPressedEvent {
 
     private String inputId;
 }

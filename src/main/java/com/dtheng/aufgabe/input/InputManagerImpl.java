@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.input;
 
+import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.input.dto.*;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.config.ConfigManager;
@@ -10,6 +11,7 @@ import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.util.RandomString;
 import com.google.inject.Inject;
+import com.pi4j.io.gpio.GpioFactory;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
@@ -25,12 +27,42 @@ public class InputManagerImpl implements InputManager {
     private InputDAO inputDAO;
     private DeviceManager deviceManager;
     private ConfigManager configManager;
+    private AufgabeContext aufgabeContext;
 
     @Inject
-    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager) {
+    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager, AufgabeContext aufgabeContext) {
         this.inputDAO = inputDAO;
         this.deviceManager = deviceManager;
         this.configManager = configManager;
+        this.aufgabeContext = aufgabeContext;
+    }
+
+    @Override
+    public Observable<Void> startUp() {
+        return Observable.zip(
+            deviceManager.getDeviceId(),
+            configManager.getConfig()
+                .map(Configuration::getDeviceType),
+            (deviceId, deviceType) -> {
+                switch (deviceType) {
+                    case RASPBERRY_PI:
+                        InputsRequest request = new InputsRequest();
+                        request.setLimit(29);
+                        request.setDevice(Optional.of(deviceId));
+                        return get(request)
+                            .flatMap(resp -> Observable.from(resp.getInputs())
+                                .flatMap(input -> {
+                                    InputHandler handler = aufgabeContext.getInjector().getInstance(input.getHandler());
+                                    return handler.startUp(input)
+                                        .defaultIfEmpty(null);
+                                })
+                                .toList());
+                    default:
+                        return Observable.empty();
+                }
+            })
+            .flatMap(o -> o)
+            .ignoreElements().cast(Void.class);
     }
 
     @Override
@@ -81,11 +113,25 @@ public class InputManagerImpl implements InputManager {
                     return Observable.error(new AufgabeException("Input already exists for IO Pin "+ request.getIoPin()));
                 Input input = new Input();
                 input.setId("input-"+ new RandomString(8).nextString());
-                input.setCreatedAt(new Date());
+                input.setCreatedAt(request.getCreatedAt().isPresent() ? request.getCreatedAt().get() : new Date());
                 input.setIoPin(request.getIoPin());
                 input.setTaskId(request.getTaskId());
                 input.setDevice(deviceId);
-                return inputDAO.createInput(input);
+                try {
+                    Class rawClass = Class.forName(request.getHandler());
+                    try {
+                        if (! (rawClass.newInstance() instanceof InputHandler))
+                            return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                        Class<? extends InputHandler> handler = (Class<? extends InputHandler>) rawClass;
+                        input.setHandler(handler);
+                        return inputDAO.createInput(input);
+                    } catch (Exception e) {
+                        log.error("Got error attempting .newInstance() on class {}", rawClass);
+                        return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                    }
+                } catch (ClassNotFoundException cnfe) {
+                    return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                }
             });
     }
 }
