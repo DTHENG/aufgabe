@@ -1,5 +1,7 @@
 package com.dtheng.aufgabe.stats;
 
+import com.dtheng.aufgabe.AufgabeContext;
+import com.dtheng.aufgabe.input.InputHandler;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
@@ -8,6 +10,7 @@ import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
+import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.stats.dto.StatsDefaultResponse;
 import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.task.dto.AggregateTask;
@@ -45,14 +48,16 @@ public class StatsApi {
         private TaskManager taskManager;
         private TaskEntryManager taskEntryManager;
         private ConfigManager configManager;
+        private AufgabeContext aufgabeContext;
 
         @Inject
-        public Default(DeviceManager deviceManager, InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager) {
+        public Default(DeviceManager deviceManager, InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager, AufgabeContext aufgabeContext) {
             this.deviceManager = deviceManager;
             this.inputManager = inputManager;
             this.taskManager = taskManager;
             this.taskEntryManager = taskEntryManager;
             this.configManager = configManager;
+            this.aufgabeContext = aufgabeContext;
         }
 
         @Override
@@ -91,8 +96,13 @@ public class StatsApi {
         }
 
         private Observable<JsonNode> toAggregateTaskEntry(TaskEntry entry, AggregateTask task) {
-            return configManager.getConfig()
-                .map(configuration -> {
+            return Observable.zip(
+                configManager.getConfig(),
+                inputManager.get(entry.getInputId())
+                    .map(Input::getHandler)
+                    .map(aufgabeContext.getInjector()::getInstance)
+                    .map(InputHandler::getName),
+                (configuration, handlerName) -> {
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.findAndRegisterModules();
                     ObjectNode node = objectMapper.valueToTree(entry);
@@ -101,7 +111,7 @@ public class StatsApi {
                     node.remove("createdAt");
                     node.remove("updatedAt");
                     node.remove("syncedAt");
-                    node.put("task", task.getTask().getDescription());
+                    node.put("task", task.getTask().getDescription() +" ("+ handlerName +")");
                     long timeZoneOffset = TimeZone.getTimeZone(configuration.getTimeZone()).getRawOffset();
                     Date adjustedDate = new Date(entry.getCreatedAt().getTime() + timeZoneOffset);
                     node.put("createdAt", new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(adjustedDate));

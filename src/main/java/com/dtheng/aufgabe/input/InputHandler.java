@@ -9,4 +9,6 @@ import rx.Observable;
 public interface InputHandler {
 
     Observable<Void> startUp(Input input);
+
+    String getName();
 }

@@ -27,6 +27,11 @@ public class B3F_TactileSwitchInputHandler implements InputHandler {
     }
 
     @Override
+    public String getName() {
+        return "Tactile Switch";
+    }
+
+    @Override
     public Observable<Void> startUp(Input input) {
         return raspberryPiManager.getDigitalInput(input.getIoPin())
             .flatMap(digitalInput -> {

@@ -70,20 +70,17 @@ public class TaskEntryService {
 
             private InputManager inputManager;
             private TaskEntryManager taskEntryManager;
-            private TaskManager taskManager;
 
             @Inject
-            public ButtonPressed(InputManager inputManager, TaskEntryManager taskEntryManager, TaskManager taskManager) {
+            public ButtonPressed(InputManager inputManager, TaskEntryManager taskEntryManager) {
                 this.inputManager = inputManager;
                 this.taskEntryManager = taskEntryManager;
-                this.taskManager = taskManager;
             }
 
             @Override
             public void accept(B3F_TactileSwitchInputPressedEvent event) {
                 inputManager.get(event.getInputId())
                     .flatMap(input -> taskEntryManager.create(new TaskEntryCreateRequest(input.getTaskId(), input.getId(), Optional.empty(), Optional.empty())))
-                    .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId()))
                     .subscribe(Void -> {},
                         error -> log.error(error.toString()));
             }
@@ -91,9 +88,21 @@ public class TaskEntryService {
 
         public static class IrSensorData implements Consumer<GP2Y0A21YK0F_IrDistanceSensorInputEvent> {
 
+            private InputManager inputManager;
+            private TaskEntryManager taskEntryManager;
+
+            @Inject
+            public IrSensorData(InputManager inputManager, TaskEntryManager taskEntryManager) {
+                this.inputManager = inputManager;
+                this.taskEntryManager = taskEntryManager;
+            }
+
             @Override
             public void accept(GP2Y0A21YK0F_IrDistanceSensorInputEvent event) {
-                log.info("event! {}", event);
+                inputManager.get(event.getInputId())
+                    .flatMap(input -> taskEntryManager.create(new TaskEntryCreateRequest(input.getTaskId(), input.getId(), Optional.empty(), Optional.of(event.getLastMovement()))))
+                    .subscribe(Void -> {},
+                        error -> log.error(error.toString()));
             }
         }
     }

@@ -2,6 +2,8 @@ package com.dtheng.aufgabe.io.event;
 
 import lombok.*;
 
+import java.util.Date;
+
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
@@ -13,5 +15,5 @@ import lombok.*;
 public class GP2Y0A21YK0F_IrDistanceSensorInputEvent {
 
     private String inputId;
-    private boolean objectFound = false;
+    private Date lastMovement;
 }
