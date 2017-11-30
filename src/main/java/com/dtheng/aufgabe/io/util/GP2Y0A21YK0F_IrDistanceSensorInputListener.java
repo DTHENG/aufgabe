@@ -53,10 +53,10 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
         return Observable.defer(() -> {
             long timeout = CRON_INTERVAL_MS * 3;
             long diff = new Date().getTime() - lastMovement.getTime();
-            if (diff > timeout) {
-                eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
+            if (diff > timeout && ! isMotionless) {
+				isMotionless = true;
+				eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
                     .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, new Date(lastMovement.getTime())));
-                isMotionless = true;
             }
             return Observable.empty();
         });
