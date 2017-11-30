@@ -62,5 +62,4 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
             return Observable.empty();
         });
     }
-
 }

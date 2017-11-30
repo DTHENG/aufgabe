@@ -20,7 +20,7 @@ public class ErrorUtil {
     public static Observable<Void> handle(Throwable throwable, HttpServletResponse resp, int code) {
         throwable.printStackTrace();
         resp.setStatus(code);
-        resp.setHeader("Server", "Raspberry Pi 3");
+        resp.setHeader("Server", "dtheng.com");
         resp.setContentType("application/json");
         String message = "Unknown Error";
         if (throwable instanceof AufgabeException)

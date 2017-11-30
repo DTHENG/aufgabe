@@ -40,19 +40,17 @@ public class InputApi {
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             RequestUtil.getBody(req, InputsRequest.class)
                 .defaultIfEmpty(null)
-                .flatMap(request -> {
-                    if (request == null)
-                        return Observable.error(new AufgabeException("Invalid request"));
-                    return inputManager.get(request);
+                .map(Optional::ofNullable)
+                .filter(inputsRequest -> {
+                    if ( ! inputsRequest.isPresent())
+                        throw new AufgabeException("Invalid request");
+                    return true;
                 })
-                .defaultIfEmpty(null)
-                .flatMap(entries -> ResponseUtil.set(resp, Optional.ofNullable(entries), 200))
+                .map(Optional::get)
+                .flatMap(inputManager::get)
+                .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 
@@ -68,14 +66,9 @@ public class InputApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             inputManager.get(req.getPathInfo().substring(1, req.getPathInfo().length()))
-                .defaultIfEmpty(null)
-                .flatMap(taskEntry -> ResponseUtil.set(resp, Optional.ofNullable(taskEntry), 200))
+                .flatMap(taskEntry -> ResponseUtil.set(resp, taskEntry, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 
@@ -94,25 +87,24 @@ public class InputApi {
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             configManager.getConfig()
                 .map(Configuration::getDeviceType)
-                .flatMap(deviceType -> {
+                .filter(deviceType -> {
                     if (deviceType != DeviceType.RASPBERRY_PI)
-                        return Observable.error(new UnsupportedException());
-                    return RequestUtil.getBody(req, InputCreateRequest.class)
-                        .defaultIfEmpty(null)
-                        .flatMap(request -> {
-                            if (request == null)
-                                return Observable.error(new AufgabeException("Invalid request"));
-                            return inputManager.create(request);
-                        });
+                        throw new UnsupportedException();
+                    return true;
                 })
-                .defaultIfEmpty(null)
-                .flatMap(entries -> ResponseUtil.set(resp, Optional.ofNullable(entries), 200))
+                .flatMap(Void -> RequestUtil.getBody(req, InputCreateRequest.class)
+                    .defaultIfEmpty(null))
+                .map(Optional::ofNullable)
+                .filter(inputCreateRequest -> {
+                    if ( ! inputCreateRequest.isPresent())
+                        throw new AufgabeException("Invalid request");
+                    return true;
+                })
+                .map(Optional::get)
+                .flatMap(inputManager::create)
+                .flatMap(input -> ResponseUtil.set(resp, input, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 
@@ -131,19 +123,15 @@ public class InputApi {
         protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             configManager.getConfig()
                 .map(Configuration::getDeviceType)
-                .flatMap(deviceType -> {
+                .filter(deviceType -> {
                     if (deviceType != DeviceType.RASPBERRY_PI)
-                        return Observable.error(new UnsupportedException());
-                    return inputManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length()));
+                        throw new UnsupportedException();
+                    return true;
                 })
-                .defaultIfEmpty(null)
-                .flatMap(input -> ResponseUtil.set(resp, Optional.ofNullable(input), 200))
+                .flatMap(Void -> inputManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length())))
+                .flatMap(removedInput -> ResponseUtil.set(resp, removedInput, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 }

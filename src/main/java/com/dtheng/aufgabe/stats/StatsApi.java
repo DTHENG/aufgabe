@@ -21,6 +21,7 @@ import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
 import com.dtheng.aufgabe.taskentry.model.TaskEntry;
+import com.dtheng.aufgabe.util.DateUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -115,7 +116,7 @@ public class StatsApi {
                     node.put("source", handlerName);
                     long timeZoneOffset = TimeZone.getTimeZone(configuration.getTimeZone()).getRawOffset();
                     Date adjustedDate = new Date(entry.getCreatedAt().getTime() + timeZoneOffset);
-                    node.put("createdAt", new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(adjustedDate));
+                    node.put("createdAt", DateUtil.toString(adjustedDate));
                     return (JsonNode) node;
                 });
         }

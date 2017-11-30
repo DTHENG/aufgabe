@@ -29,17 +29,15 @@ public class InputManagerImpl implements InputManager {
     private InputDAO inputDAO;
     private DeviceManager deviceManager;
     private ConfigManager configManager;
-    private AufgabeContext aufgabeContext;
     private SyncManager syncManager;
     private EventManager eventManager;
 
     @Inject
-    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager, AufgabeContext aufgabeContext,
+    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager,
                             SyncManager syncManager, EventManager eventManager) {
         this.inputDAO = inputDAO;
         this.deviceManager = deviceManager;
         this.configManager = configManager;
-        this.aufgabeContext = aufgabeContext;
         this.syncManager = syncManager;
         this.eventManager = eventManager;
     }

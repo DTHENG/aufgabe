@@ -26,28 +26,33 @@ public class ServletManagerImpl implements ServletManager {
 
     @Override
     public Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config) {
-        return Observable.defer(() -> {
-            Server server = new Server(port);
-            Context jettyContext = new Context();
-            return Observable.from(config.keySet()).zipWith(Observable.from(config.values()),
+        Server server = new Server(port);
+        Context jettyContext = new Context();
+        return configureServlets(config, jettyContext)
+            .defaultIfEmpty(null)
+            .flatMap(Void -> {
+                server.setHandler(jettyContext);
+                try {
+                    server.start();
+                    log.info("RUNNING ON PORT {}", port);
+                    server.join();
+                    return Observable.empty();
+                } catch (Throwable throwable) {
+                    return Observable.error(throwable);
+                }
+            })
+            .ignoreElements().cast(Void.class);
+    }
+
+    private Observable<Void> configureServlets(Map<String, Class<? extends Servlet>> config, Context jettyContext) {
+        return Observable.from(config.keySet())
+            .zipWith(Observable.from(config.values()),
                 (path, servletClass) -> {
                     Servlet injectedClass = context.getInjector().getInstance(servletClass);
                     jettyContext.addServlet(new ServletHolder(injectedClass), path);
-                    return Observable.empty();
-                }).flatMap(o -> o)
-                .defaultIfEmpty(null)
-                .toList()
-                .flatMap(Void -> {
-                    server.setHandler(jettyContext);
-                    try {
-                        server.start();
-                        log.info("Server running on port {}!", port);
-                        server.join();
-                        return Observable.empty();
-                    } catch (Throwable throwable) {
-                        return Observable.error(throwable);
-                    }
-                });
-        }).ignoreElements().cast(Void.class);
+                    return null;
+                })
+            .toList()
+            .ignoreElements().cast(Void.class);
     }
 }

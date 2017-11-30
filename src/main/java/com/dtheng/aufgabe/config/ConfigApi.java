@@ -39,7 +39,15 @@ public class ConfigApi {
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            deviceManager.getDeviceId()
+            getTasks()
+                .toList()
+                .flatMap(tasks -> ResponseUtil.set(resp, tasks, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
+        }
+
+        private Observable<String> getTasks() {
+            return deviceManager.getDeviceId()
                 .flatMap(deviceId -> {
                     InputsRequest inputsRequest = new InputsRequest();
                     inputsRequest.setLimit(100);
@@ -51,16 +59,7 @@ public class ConfigApi {
                 .map(InputsResponse::getInputs)
                 .flatMap(Observable::from)
                 .concatMap(input -> taskManager.get(input.getTaskId())
-                    .map(task -> task.getTask().getDescription()))
-                .toList()
-                .defaultIfEmpty(null)
-                .flatMap(tasks -> ResponseUtil.set(resp, Optional.ofNullable(tasks), 200))
-                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                    .map(task -> task.getTask().getDescription()));
         }
     }
 }

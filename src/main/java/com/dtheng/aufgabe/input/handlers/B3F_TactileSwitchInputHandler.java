@@ -34,11 +34,11 @@ public class B3F_TactileSwitchInputHandler implements InputHandler {
     @Override
     public Observable<Void> startUp(Input input) {
         return raspberryPiManager.getDigitalInput(input.getIoPin())
-            .flatMap(digitalInput -> {
+            .doOnNext(digitalInput -> {
                 B3F_TactileSwitchInputListener listener = aufgabeContext.getInjector().getInstance(B3F_TactileSwitchInputListener.class);
                 listener.setInputId(input.getId());
                 digitalInput.addListener(listener);
-                return Observable.empty();
-            });
+            })
+            .ignoreElements().cast(Void.class);
     }
 }

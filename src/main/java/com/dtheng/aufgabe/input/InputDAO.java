@@ -4,6 +4,7 @@ import com.dtheng.aufgabe.input.dto.*;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.*;
@@ -55,16 +56,16 @@ class InputDAO {
             .retryWhen(e -> e.flatMap(throwable -> {
                 log.info("Got error looking up input {}, {}", id, throwable.toString());
                 if (throwable instanceof DataAccessException)
-                    return Observable.just(null);
+                    return Observable.empty();
                 return Observable.error(throwable);
             }))
             .defaultIfEmpty(null)
-            .flatMap(record -> {
+            .map(record -> {
                 if (record == null) {
                     log.error("Input not found, id: {}", id);
-                    return Observable.error(new AufgabeException("Input not found"));
+                    throw new AufgabeException("Input not found");
                 }
-                return Observable.just(record);
+                return record;
             })
             .flatMap(this::toInput);
     }
@@ -143,25 +144,37 @@ class InputDAO {
             });
     }
 
+    private Observable<Class<? extends InputHandler>> getHandler(String className) {
+        return getClassForName(className)
+            .flatMap(rawClass -> getNewInstanceOfClass(rawClass)
+                .map(instance -> {
+                    if ( ! (instance instanceof InputHandler))
+                        throw new RuntimeException("Not an instance of InputHandler! "+ className);
+                    return (Class<? extends InputHandler>) rawClass;
+                }));
+    }
+
     private Observable<Input> toInput(Record record) {
-        try {
-            Date removedAt = null;
-            if (record.getValue("removedAt") != null)
-                removedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("removedAt").toString());
-            String className = record.getValue("handler").toString();
-            Class rawClass = Class.forName(className);
-            if (! (rawClass.newInstance() instanceof InputHandler))
-                return Observable.error(new RuntimeException("Not an instance of InputHandler! "+ className));
-            Class<? extends InputHandler> handler = Class.forName(record.getValue("handler").toString()).asSubclass(InputHandler.class);
-            Date updatedAt = null;
-            if (record.getValue("updatedAt") != null)
-                updatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("updatedAt").toString());
-            Date syncedAt = null;
-            if (record.getValue("syncedAt") != null)
-                syncedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("syncedAt").toString());
-            return Observable.just(new Input(
+        Observable<Date> oCreatedAt = DateUtil.parse(record.getValue("createdAt").toString());
+        Observable<Date> oRemovedAt = Observable.empty();
+        Observable<Date> oUpdatedAt = Observable.empty();
+        Observable<Date> oSyncedAt = Observable.empty();
+        if (record.getValue("removedAt") != null)
+            oRemovedAt = DateUtil.parse(record.getValue("removedAt").toString());
+        if (record.getValue("updatedAt") != null)
+            oUpdatedAt = DateUtil.parse(record.getValue("updatedAt").toString());
+        if (record.getValue("syncedAt") != null)
+            oSyncedAt = DateUtil.parse(record.getValue("syncedAt").toString());
+        String className = record.getValue("handler").toString();
+        return Observable.zip(
+            oCreatedAt,
+            oRemovedAt.defaultIfEmpty(null),
+            oUpdatedAt.defaultIfEmpty(null),
+            oSyncedAt.defaultIfEmpty(null),
+            getHandler(className),
+            (createdAt, removedAt, updatedAt, syncedAt, handler) -> new Input(
                 record.getValue("id").toString(),
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
+                createdAt,
                 record.getValue("ioPin").toString(),
                 record.getValue("taskId").toString(),
                 record.getValue("device").toString(),
@@ -169,8 +182,21 @@ class InputDAO {
                 handler,
                 Optional.ofNullable(updatedAt),
                 Optional.ofNullable(syncedAt)));
-        } catch (Throwable throwable) {
-            return Observable.error(throwable);
+    }
+
+    private Observable<Class> getClassForName(String name) {
+        try {
+            return Observable.just(Class.forName(name));
+        } catch (ClassNotFoundException cnfe) {
+            return Observable.error(cnfe);
+        }
+    }
+
+    private Observable<Object> getNewInstanceOfClass(Class clazz) {
+        try {
+            return Observable.just(clazz.newInstance());
+        } catch (Exception e) {
+            return Observable.error(e);
         }
     }
 }

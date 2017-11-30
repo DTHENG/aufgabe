@@ -5,6 +5,7 @@ import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
 import com.dtheng.aufgabe.taskentry.model.TaskEntry;
+import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
@@ -121,22 +122,21 @@ class TaskEntryDAO {
     }
 
     private Observable<TaskEntry> toTaskEntry(Record record) {
-        try {
-            Date updatedAt = null;
-            if (record.getValue("updatedAt") != null)
-                updatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("updatedAt").toString());
-            Date syncedAt = null;
-            if (record.getValue("syncedAt") != null)
-                syncedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("syncedAt").toString());
-            return Observable.just(new TaskEntry(
+        Observable<Date> oCreatedAt = DateUtil.parse(record.getValue("createdAt").toString());
+        Observable<Date> oUpdatedAt = Observable.empty();
+        Observable<Date> oSyncedAt = Observable.empty();
+        if (record.getValue("updatedAt") != null)
+            oUpdatedAt = DateUtil.parse(record.getValue("updatedAt").toString());
+        if (record.getValue("syncedAt") != null)
+            oSyncedAt = DateUtil.parse(record.getValue("syncedAt").toString());
+        return Observable.zip(oCreatedAt, oUpdatedAt.defaultIfEmpty(null), oSyncedAt.defaultIfEmpty(null),
+            (createdAt, updatedAt, syncedAt) ->
+            new TaskEntry(
                 record.getValue("id").toString(),
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
+                createdAt,
                 record.getValue("taskId").toString(),
                 record.getValue("inputId").toString(),
                 Optional.ofNullable(updatedAt),
                 Optional.ofNullable(syncedAt)));
-        } catch (Throwable throwable) {
-            return Observable.error(throwable);
-        }
     }
 }

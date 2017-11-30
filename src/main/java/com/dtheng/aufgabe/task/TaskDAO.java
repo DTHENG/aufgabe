@@ -5,6 +5,7 @@ import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
 import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.task.model.Task;
+import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
@@ -113,21 +114,20 @@ class TaskDAO {
     }
 
     private Observable<Task> toTask(Record record) {
-        try {
-            Date updatedAt = null;
-            if (record.getValue("updatedAt") != null)
-                updatedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("updatedAt").toString());
-            Date syncedAt = null;
-            if (record.getValue("syncedAt") != null)
-                syncedAt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("syncedAt").toString());
-            return Observable.just(new Task(
-                record.getValue("id").toString(),
-                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(record.getValue("createdAt").toString()),
-                record.getValue("description").toString(),
-                Optional.ofNullable(updatedAt),
-                Optional.ofNullable(syncedAt)));
-        } catch (Throwable throwable) {
-            return Observable.error(throwable);
-        }
+        Observable<Date> oCreatedAt = DateUtil.parse(record.getValue("createdAt").toString());
+        Observable<Date> oUpdatedAt = Observable.empty();
+        Observable<Date> oSyncedAt = Observable.empty();
+        if (record.getValue("updatedAt") != null)
+            oUpdatedAt = DateUtil.parse(record.getValue("updatedAt").toString());
+        if (record.getValue("syncedAt") != null)
+            oSyncedAt = DateUtil.parse(record.getValue("syncedAt").toString());
+        return Observable.zip(oCreatedAt, oUpdatedAt.defaultIfEmpty(null), oSyncedAt.defaultIfEmpty(null),
+            (createdAt, updatedAt, syncedAt) ->
+                new Task(
+                    record.getValue("id").toString(),
+                    createdAt,
+                    record.getValue("description").toString(),
+                    Optional.ofNullable(updatedAt),
+                    Optional.ofNullable(syncedAt)));
     }
 }
