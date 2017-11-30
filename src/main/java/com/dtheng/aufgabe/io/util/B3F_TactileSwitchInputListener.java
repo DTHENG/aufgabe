@@ -1,7 +1,7 @@
 package com.dtheng.aufgabe.io.util;
 
 import com.dtheng.aufgabe.event.EventManager;
-import com.dtheng.aufgabe.io.event.B3F_TactileSwitchInputPressedEvent;
+import com.dtheng.aufgabe.taskentry.event.B3F_TactileSwitchInputPressedEvent;
 import com.google.inject.Inject;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;

@@ -111,7 +111,8 @@ public class StatsApi {
                     node.remove("createdAt");
                     node.remove("updatedAt");
                     node.remove("syncedAt");
-                    node.put("task", task.getTask().getDescription() +" ("+ handlerName +")");
+                    node.put("task", task.getTask().getDescription());
+                    node.put("source", handlerName);
                     long timeZoneOffset = TimeZone.getTimeZone(configuration.getTimeZone()).getRawOffset();
                     Date adjustedDate = new Date(entry.getCreatedAt().getTime() + timeZoneOffset);
                     node.put("createdAt", new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a").format(adjustedDate));

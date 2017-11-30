@@ -19,12 +19,6 @@ public class DeviceManagerImpl implements DeviceManager {
     private String id;
 
     @Override
-    public Observable<Void> startUp() {
-        return loadId()
-            .ignoreElements().cast(Void.class);
-    }
-
-    @Override
     public Observable<String> getDeviceId() {
         if (id == null)
             return loadId();

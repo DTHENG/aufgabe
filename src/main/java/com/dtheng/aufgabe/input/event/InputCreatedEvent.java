@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.io.event;
+package com.dtheng.aufgabe.input.event;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class B3F_TactileSwitchInputPressedEvent {
+public class InputCreatedEvent {
 
-    private String inputId;
+    private String id;
 }

@@ -9,7 +9,5 @@ import rx.Observable;
 @ImplementedBy(DeviceManagerImpl.class)
 public interface DeviceManager {
 
-    Observable<Void> startUp();
-
     Observable<String> getDeviceId();
 }

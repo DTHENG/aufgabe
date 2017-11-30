@@ -5,20 +5,17 @@ import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.input.InputManager;
-import com.dtheng.aufgabe.input.InputService;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
-import com.dtheng.aufgabe.io.RaspberryPiManager;
 import com.dtheng.aufgabe.stats.StatsApi;
 import com.dtheng.aufgabe.sync.SyncApi;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.TaskApi;
-import com.dtheng.aufgabe.task.TaskService;
 import com.dtheng.aufgabe.taskentry.EntryApi;
-import com.dtheng.aufgabe.taskentry.TaskEntryService;
 import com.google.inject.*;
 import lombok.extern.slf4j.Slf4j;
+import org.reflections.Reflections;
 import rx.Observable;
 
 import javax.servlet.Servlet;
@@ -53,25 +50,22 @@ public class Aufgabe {
         private ServletManager servletManager;
         private ConfigManager configManager;
         private JooqManager jooqManager;
-        private TaskEntryService taskEntryService;
         private DeviceManager deviceManager;
         private SyncManager syncManager;
         private InputManager inputManager;
-        private TaskService taskService;
-        private InputService inputService;
+        private AufgabeContext aufgabeContext;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager, TaskEntryService taskEntryService,
-                       DeviceManager deviceManager, SyncManager syncManager, InputManager inputManager, TaskService taskService, InputService inputService) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, JooqManager jooqManager,
+                       DeviceManager deviceManager, SyncManager syncManager, InputManager inputManager,
+                       AufgabeContext aufgabeContext) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.jooqManager = jooqManager;
-            this.taskEntryService = taskEntryService;
             this.deviceManager = deviceManager;
             this.syncManager = syncManager;
             this.inputManager = inputManager;
-            this.taskService = taskService;
-            this.inputService = inputService;
+            this.aufgabeContext = aufgabeContext;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
@@ -100,25 +94,16 @@ public class Aufgabe {
                     routes.put("/sync/entry", SyncApi.SyncEntry.class);
                     routes.put("/sync/input", SyncApi.SyncInput.class);
 
-
-                    return Observable.concat(Arrays.asList(
-
-                        deviceManager.startUp(),
-
-                        // Create database connection
-                        jooqManager.startUp(),
-
-                        inputService.startUp(),
-                        taskService.startUp(),
-                        taskEntryService.startUp(),
-
-                        syncManager.startUp(),
-
-                        inputManager.startUp(),
+                    Reflections reflections = new Reflections("com.dtheng.aufgabe");
+                    Set<Class<? extends AufgabeService>> classes = reflections.getSubTypesOf(AufgabeService.class);
+                    return Observable.from(classes)
+                        .map(aufgabeContext.getInjector()::getInstance)
+                        .flatMap(AufgabeService::startUp)
+                        .defaultIfEmpty(null)
+                        .toList()
 
                         // Start the http server
-                        servletManager.start(config.getHttpPort(), routes))
-                    );
+                        .flatMap(Void -> servletManager.start(config.getHttpPort(), routes));
                 });
         }
     }

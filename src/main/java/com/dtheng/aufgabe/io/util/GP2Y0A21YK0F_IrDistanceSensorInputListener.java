@@ -1,13 +1,9 @@
 package com.dtheng.aufgabe.io.util;
 
 import com.dtheng.aufgabe.event.EventManager;
-import com.dtheng.aufgabe.input.InputManager;
-import com.dtheng.aufgabe.input.model.Input;
-import com.dtheng.aufgabe.io.RaspberryPiManager;
-import com.dtheng.aufgabe.io.event.GP2Y0A21YK0F_IrDistanceSensorInputEvent;
+import com.dtheng.aufgabe.taskentry.event.GP2Y0A21YK0F_IrDistanceSensorInputEvent;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.wiringpi.Gpio;
@@ -15,9 +11,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /**

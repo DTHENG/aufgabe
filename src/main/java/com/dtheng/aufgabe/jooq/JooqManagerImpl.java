@@ -30,7 +30,22 @@ public class JooqManagerImpl implements JooqManager {
     }
 
     @Override
-    public Observable<Void> startUp() {
+    public Observable<DSLContext> getConnection() {
+        if (configuration == null)
+            return connect()
+                .defaultIfEmpty(null)
+                .map(Void -> DSL.using(configuration));
+        return Observable.just(DSL.using(configuration));
+    }
+
+    @Override
+    public Observable<DSLContext> reconnect() {
+        return connect()
+            .defaultIfEmpty(null)
+            .flatMap(Void -> getConnection());
+    }
+
+    private Observable<Void> connect() {
         return configManager.getConfig()
             .flatMap(config -> {
                 String url = "jdbc:mysql://localhost:"+ config.getDatabasePort() +"/"+ config.getDatabaseName();
@@ -43,17 +58,5 @@ public class JooqManagerImpl implements JooqManager {
                     return Observable.error(e);
                 }
             });
-    }
-
-    @Override
-    public Observable<DSLContext> getConnection() {
-        return Observable.just(DSL.using(configuration));
-    }
-
-    @Override
-    public Observable<DSLContext> reconnect() {
-        return startUp()
-            .defaultIfEmpty(null)
-            .flatMap(Void -> getConnection());
     }
 }

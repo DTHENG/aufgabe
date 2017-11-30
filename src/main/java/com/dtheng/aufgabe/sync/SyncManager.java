@@ -9,7 +9,5 @@ import rx.Observable;
 @ImplementedBy(SyncManagerImpl.class)
 public interface SyncManager {
 
-    Observable<Void> startUp();
-
     Observable<SyncClient> getSyncClient();
 }

@@ -12,7 +12,5 @@ public interface JooqManager {
 
 	Observable<DSLContext> getConnection();
 
-	Observable<Void> startUp();
-
 	Observable<DSLContext> reconnect();
 }
