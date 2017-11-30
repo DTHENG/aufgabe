@@ -23,8 +23,8 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
 
     private static final int CRON_INTERVAL_MS = 1000 * 45;
 
-    @Setter
-    private String inputId;
+    @Setter private String inputId;
+
     private static Date lastMovement = new Date();
     private static boolean isMotionless = false;
 
@@ -42,14 +42,11 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
 
     @Override
     public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-        if (Gpio.digitalRead(27) == 1) {
-            if (isMotionless) {
-                isMotionless = false;
-                eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
-                    .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, new Date(lastMovement.getTime())));
-            }
-            lastMovement = new Date();
-        }
+        if (Gpio.digitalRead(27) != 1)
+            return;
+        if (isMotionless)
+            isMotionless = false;
+        lastMovement = new Date();
     }
 
     private Observable<Void> sensorCheckCron() {
@@ -57,6 +54,8 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
             long timeout = CRON_INTERVAL_MS * 3;
             long diff = new Date().getTime() - lastMovement.getTime();
             if (diff > timeout) {
+                eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
+                    .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, new Date(lastMovement.getTime())));
                 isMotionless = true;
             }
             return Observable.empty();
