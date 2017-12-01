@@ -13,6 +13,7 @@ import com.dtheng.aufgabe.task.dto.AggregateTask;
 import com.dtheng.aufgabe.task.dto.AggregateTasksResponse;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
+import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
@@ -58,6 +59,19 @@ public class SyncService {
 
                 eventManager.getTaskCreated()
                     .addListener((TaskCreatedEvent event) -> taskManager.get(event.getId())
+                        .map(AggregateTask::getTask)
+                        .flatMap(task -> canSync()
+                            .filter(canSync -> canSync)
+                            .flatMap(Void -> taskManager.performSync(task)))
+                        .onErrorResumeNext(throwable -> {
+                            if (throwable instanceof RetrofitError)
+                                return Observable.empty();
+                            return Observable.error(throwable);
+                        })
+                        .subscribe(Void -> {}, error -> log.error(error.toString())));
+
+                eventManager.getTaskUpdatedEvent()
+                    .addListener((TaskUpdatedEvent event) -> taskManager.get(event.getId())
                         .map(AggregateTask::getTask)
                         .flatMap(task -> canSync()
                             .filter(canSync -> canSync)

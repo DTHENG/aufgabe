@@ -9,6 +9,7 @@ import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.dto.*;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
+import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
@@ -78,15 +79,30 @@ public class TaskManagerImpl implements TaskManager {
     @Override
     public Observable<Task> performSync(Task task) {
         return syncManager.getSyncClient()
-            .flatMap(syncClient -> syncClient.syncTask(new TaskSyncRequest(task.getId(), task.getCreatedAt().getTime(), task.getDescription(), task.getBonuslyMessage()))
+            .flatMap(syncClient -> syncClient.syncTask(
+                new TaskSyncRequest(
+                    task.getId(),
+                    task.getCreatedAt().getTime(),
+                    task.getDescription(),
+                    task.getBonuslyMessage().orElse(null),
+                    task.getSyncedAt().isPresent() ? task.getSyncedAt().get().getTime() : null))
                 .defaultIfEmpty(null)
                 .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date())));
+    }
+
+    @Override
+    public Observable<AggregateTask> update(String id, TaskUpdateRequest request) {
+        return taskDAO.update(id, request)
+            .defaultIfEmpty(null)
+            .flatMap(Void -> taskDAO.setUpdatedAt(id, new Date()))
+            .doOnNext(task -> eventManager.getTaskUpdatedEvent().trigger(new TaskUpdatedEvent(task.getId())))
+            .flatMap(this::aggregate);
     }
 
     private Observable<AggregateTask> aggregate(Task task) {
         InputsRequest inputsRequest = new InputsRequest();
         inputsRequest.setOffset(0);
-        inputsRequest.setLimit(10);
+        inputsRequest.setLimit(5);
         inputsRequest.setTaskId(Optional.of(task.getId()));
         return Observable.zip(
             inputManager.get(inputsRequest)

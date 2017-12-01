@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.bonusly.dto;
+package com.dtheng.aufgabe.task.event;
 
 import lombok.*;
 
@@ -10,8 +10,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class BonuslyResponse {
+public class TaskUpdatedEvent {
 
-    private boolean success;
-    private String message;
+    private String id;
 }

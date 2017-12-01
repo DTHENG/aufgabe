@@ -63,10 +63,12 @@ public class StatsApi {
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            EntriesRequest entriesRequest = new EntriesRequest();
+            entriesRequest.setLimit(5);
             Observable.zip(
                 buildDevicesList().toList(),
                 buildTotalsMap(),
-                taskEntryManager.get(new EntriesRequest())
+                taskEntryManager.get(entriesRequest)
                     .map(EntriesResponse::getEntries)
                     .flatMap(taskEntries -> Observable.from(taskEntries)
                         .flatMap(entry -> taskManager.get(entry.getTaskId())
@@ -83,6 +85,8 @@ public class StatsApi {
                 .flatMap(deviceId -> {
                     InputsRequest inputsOfDeviceRequest = new InputsRequest();
                     inputsOfDeviceRequest.setDevice(Optional.of(deviceId));
+                    inputsOfDeviceRequest.setOrderBy(Optional.of("ioPin"));
+                    inputsOfDeviceRequest.setOrderDirection(Optional.of("asc"));
                     return Observable.zip(Observable.just(deviceId),
                         inputManager.get(inputsOfDeviceRequest)
                             .flatMap(inputsResponse -> Observable.from(inputsResponse.getInputs())

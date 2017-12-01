@@ -47,6 +47,7 @@ public class RequestUtil {
         if (throwable != null)
             return Observable.error(throwable);
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
         if (stringBuilder.toString().isEmpty())
             return Observable.empty();
         try {

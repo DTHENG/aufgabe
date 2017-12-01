@@ -2,6 +2,7 @@ package com.dtheng.aufgabe.event;
 
 import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
+import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
 import com.dtheng.aufgabe.taskentry.event.B3F_TactileSwitchInputPressedEvent;
 import com.dtheng.aufgabe.taskentry.event.GP2Y0A21YK0F_IrDistanceSensorInputEvent;
 import com.dtheng.aufgabe.taskentry.event.TaskEntryCreatedEvent;
@@ -20,6 +21,8 @@ public class EventManagerImpl implements EventManager {
     private final Event<InputCreatedEvent> inputCreatedEvent = new SimpleEvent<>();
     private final Event<TaskEntryCreatedEvent> taskEntryCreatedEvent = new SimpleEvent<>();
     private final Event<TaskCreatedEvent> taskCreatedEvent = new SimpleEvent<>();
+    private final Event<TaskUpdatedEvent> taskUpdatedEvent = new SimpleEvent<>();
+
     private final Event<B3F_TactileSwitchInputPressedEvent> b3F_tactileSwitchInputPressedEvent = new SimpleEvent<>();
     private final Event<GP2Y0A21YK0F_IrDistanceSensorInputEvent> gp2Y0A21YK0F_irDistanceSensorInputEvent = new SimpleEvent<>();
 
@@ -36,6 +39,11 @@ public class EventManagerImpl implements EventManager {
     @Override
     public Event<TaskCreatedEvent> getTaskCreated() {
         return taskCreatedEvent;
+    }
+
+    @Override
+    public Event<TaskUpdatedEvent> getTaskUpdatedEvent() {
+        return taskUpdatedEvent;
     }
 
     @Override

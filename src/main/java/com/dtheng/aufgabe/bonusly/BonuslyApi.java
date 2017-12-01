@@ -1,6 +1,8 @@
 package com.dtheng.aufgabe.bonusly;
 
+import com.dtheng.aufgabe.bonusly.dto.BonuslyRequest;
 import com.dtheng.aufgabe.bonusly.dto.BonuslyResponse;
+import retrofit.http.Body;
 import retrofit.http.Header;
 import retrofit.http.POST;
 import retrofit.http.Path;
@@ -12,5 +14,5 @@ import rx.Observable;
 public interface BonuslyApi {
 
     @POST("/bonuses")
-    Observable<BonuslyResponse> create(@Header("Authorization") String authHeader, @Path("reason") String message);
+    Observable<BonuslyResponse> create(@Header("Authorization") String authHeader, @Body BonuslyRequest request);
 }

@@ -10,8 +10,7 @@ import lombok.*;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class BonuslyResponse {
+public class BonuslyRequest {
 
-    private boolean success;
-    private String message;
+    private String reason;
 }

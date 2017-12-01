@@ -78,6 +78,7 @@ public class Aufgabe {
                     routes.put("/task", TaskApi.CreateTask.class);
                     routes.put("/tasks", TaskApi.Tasks.class);
                     routes.put("/taskFromId/*", TaskApi.GetTask.class);
+                    routes.put("/task/update/*", TaskApi.UpdateTask.class);
                     routes.put("/input", InputApi.CreateCreate.class);
                     routes.put("/inputs", InputApi.Inputs.class);
                     routes.put("/inputFromId/*", InputApi.GetInput.class);

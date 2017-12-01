@@ -9,7 +9,6 @@ import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.event.TaskEntryCreatedEvent;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import retrofit.RetrofitError;
 import rx.Observable;
 
 /**
@@ -54,15 +53,6 @@ public class TaskService implements AufgabeService {
             .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId()))
             .map(AggregateTask::getTask)
             .filter(task -> task.getBonuslyMessage().isPresent())
-            .flatMap(task -> bonuslyService.send(task.getBonuslyMessage().get()))
-            .onErrorResumeNext(throwable -> {
-                if (throwable instanceof RetrofitError) {
-                    log.info("Got error from bonusly...");
-                    throwable.printStackTrace();
-                    return Observable.empty();
-                }
-                return Observable.error(throwable);
-            });
+            .flatMap(task -> bonuslyService.send(task.getBonuslyMessage().get()));
     }
-
 }

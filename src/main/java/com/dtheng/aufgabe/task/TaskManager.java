@@ -18,4 +18,6 @@ public interface TaskManager {
 	Observable<AggregateTask> create(TaskCreateRequest request);
 
     Observable<Task> performSync(Task task);
+
+    Observable<AggregateTask> update(String id, TaskUpdateRequest request);
 }

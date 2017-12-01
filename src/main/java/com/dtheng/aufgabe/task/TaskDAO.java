@@ -2,23 +2,18 @@ package com.dtheng.aufgabe.task;
 
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.task.dto.TaskUpdateRequest;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
 import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.Condition;
-import org.jooq.Record;
-import org.jooq.SortOrder;
-import org.jooq.Table;
+import org.jooq.*;
 import rx.Observable;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.jooq.impl.DSL.*;
 
@@ -112,6 +107,20 @@ class TaskDAO {
                     .execute();
                 return getTask(id);
             });
+    }
+
+    Observable<Void> update(String id, TaskUpdateRequest request) {
+        Map<Field, String> set = new HashMap<>();
+        if (request.getDescription().isPresent())
+            set.put(field("description"), request.getDescription().get());
+        if (request.getBonuslyMessage().isPresent())
+            set.put(field("bonuslyMessage"), request.getBonuslyMessage().get());
+        return jooqManager.getConnection()
+            .doOnNext(connection -> connection.update(TABLE)
+                .set(set)
+                .where(field("id").eq(id))
+            .execute())
+            .ignoreElements().cast(Void.class);
     }
 
     private Observable<Task> toTask(Record record) {
