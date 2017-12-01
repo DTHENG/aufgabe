@@ -1,9 +1,8 @@
 package com.dtheng.aufgabe.sync;
 
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
-import com.dtheng.aufgabe.exceptions.AufgabeException;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
@@ -48,9 +47,9 @@ public class SyncApi {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             configManager.getConfig()
-                .map(Configuration::getDeviceType)
+                .map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
-                    if (deviceType != DeviceType.EC2_INSTANCE)
+                    if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
                         return Observable.error(new UnsupportedException());
                     return RequestUtil.getBody(req, Task.class);
                 })
@@ -88,9 +87,9 @@ public class SyncApi {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             configManager.getConfig()
-                .map(Configuration::getDeviceType)
+                .map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
-                    if (deviceType != DeviceType.EC2_INSTANCE)
+                    if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
                         return Observable.error(new UnsupportedException());
                     return RequestUtil.getBody(req, TaskEntry.class);
                 })
@@ -129,9 +128,9 @@ public class SyncApi {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             configManager.getConfig()
-                .map(Configuration::getDeviceType)
+                .map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
-                    if (deviceType != DeviceType.EC2_INSTANCE)
+                    if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
                         return Observable.error(new UnsupportedException());
                     return RequestUtil.getBody(req, Input.class);
                 })

@@ -6,6 +6,7 @@ import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.io.FileManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
+import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.stats.StatsApi;
 import com.dtheng.aufgabe.sync.SyncApi;
 import com.dtheng.aufgabe.task.TaskApi;
@@ -48,13 +49,15 @@ public class Aufgabe {
         private ConfigManager configManager;
         private AufgabeContext aufgabeContext;
         private FileManager fileManager;
+        private JooqManager jooqManager;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager, JooqManager jooqManager) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.aufgabeContext = aufgabeContext;
             this.fileManager = fileManager;
+            this.jooqManager = jooqManager;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
@@ -84,17 +87,37 @@ public class Aufgabe {
                     routes.put("/sync/entry", SyncApi.SyncEntry.class);
                     routes.put("/sync/input", SyncApi.SyncInput.class);
 
-                    // Inject and start services
-                    Reflections reflections = new Reflections("com.dtheng.aufgabe");
-                    Set<Class<? extends AufgabeService>> classes = reflections.getSubTypesOf(AufgabeService.class);
-                    return Observable.from(classes)
-                        .map(aufgabeContext.getInjector()::getInstance)
-                        .flatMap(AufgabeService::startUp)
-                        .defaultIfEmpty(null).toList()
+                    return Observable.concat(Arrays.asList(
 
-                        // Start the http server
-                        .flatMap(Void -> servletManager.start(config.getHttpPort(), routes));
-                });
+                        // 1. Connect database
+                        jooqManager.start(),
+
+                        // 2. Start services
+                        startServices(),
+
+                        // 3. Start http server
+                        servletManager.start(config.getHttpPort(), routes)))
+
+                        .defaultIfEmpty(null)
+                        .toList();
+                })
+                .ignoreElements().cast(Void.class);
+        }
+
+        /**
+         * Inject and start services
+         *
+         * @return nope
+         */
+        private Observable<Void> startServices() {
+            Reflections reflections = new Reflections("com.dtheng.aufgabe");
+            Set<Class<? extends AufgabeService>> classes = reflections.getSubTypesOf(AufgabeService.class);
+            return Observable.from(classes)
+                .map(aufgabeContext.getInjector()::getInstance)
+                .flatMap(AufgabeService::startUp)
+                .defaultIfEmpty(null)
+                .toList()
+                .ignoreElements().cast(Void.class);
         }
     }
 }

@@ -1,8 +1,8 @@
 package com.dtheng.aufgabe.task;
 
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
@@ -89,9 +89,9 @@ public class TaskApi {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             configManager.getConfig()
-                .map(Configuration::getDeviceType)
+                .map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
-                    if (deviceType != DeviceType.RASPBERRY_PI)
+                    if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
                         return Observable.error(new UnsupportedException());
                     return RequestUtil.getBody(req, TaskCreateRequest.class)
                         .defaultIfEmpty(null)

@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.config;
 
-import com.dtheng.aufgabe.config.model.Configuration;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.io.FileManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @Singleton
 public class ConfigManagerImpl implements ConfigManager {
 
-    private Optional<Configuration> configuration = Optional.empty();
+    private Optional<AufgabeConfig> configuration = Optional.empty();
 
     private FileManager fileManager;
 
@@ -35,7 +35,7 @@ public class ConfigManagerImpl implements ConfigManager {
                 ObjectMapper objectMapper = new ObjectMapper();
                 objectMapper.findAndRegisterModules();
                 try {
-                    return Observable.just(objectMapper.readValue(raw, Configuration.class));
+                    return Observable.just(objectMapper.readValue(raw, AufgabeConfig.class));
                 } catch (IOException e) {
                     return Observable.error(e);
                 }
@@ -45,7 +45,7 @@ public class ConfigManagerImpl implements ConfigManager {
     }
 
     @Override
-    public Observable<Configuration> getConfig() {
+    public Observable<AufgabeConfig> getConfig() {
         if ( ! configuration.isPresent())
             return Observable.error(new RuntimeException("ConfigManager.load not called!"));
         return Observable.just(configuration.get());

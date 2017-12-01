@@ -1,7 +1,7 @@
 package com.dtheng.aufgabe.taskentry;
 
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
@@ -44,7 +44,7 @@ public class TaskEntryManagerImpl implements TaskEntryManager {
     @Override
     public Observable<TaskEntry> create(TaskEntryCreateRequest request) {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
+            .map(AufgabeConfig::getDeviceType)
             .flatMap(deviceType -> {
                 TaskEntry entry = new TaskEntry();
                 if (request.getId().isPresent())

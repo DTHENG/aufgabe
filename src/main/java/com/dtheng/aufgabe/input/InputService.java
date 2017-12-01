@@ -3,7 +3,7 @@ package com.dtheng.aufgabe.input;
 import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.google.inject.Inject;
@@ -36,7 +36,7 @@ public class InputService implements AufgabeService {
         return Observable.zip(
             deviceManager.getDeviceId(),
             configManager.getConfig()
-                .map(Configuration::getDeviceType),
+                .map(AufgabeConfig::getDeviceType),
             (deviceId, deviceType) -> {
                 switch (deviceType) {
                     case RASPBERRY_PI:

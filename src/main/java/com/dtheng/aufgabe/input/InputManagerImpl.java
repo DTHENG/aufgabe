@@ -1,13 +1,12 @@
 package com.dtheng.aufgabe.input;
 
-import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.dto.*;
 import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
@@ -50,7 +49,7 @@ public class InputManagerImpl implements InputManager {
     @Override
     public Observable<Input> create(InputCreateRequest request) {
         return deviceManager.getDeviceId()
-            .flatMap(deviceId -> configManager.getConfig().map(Configuration::getDeviceType)
+            .flatMap(deviceId -> configManager.getConfig().map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
                     switch (deviceType) {
                         case RASPBERRY_PI:
@@ -85,9 +84,9 @@ public class InputManagerImpl implements InputManager {
     @Override
     public Observable<Input> remove(String id) {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
+            .map(AufgabeConfig::getDeviceType)
             .flatMap(deviceType -> {
-                if (deviceType != DeviceType.RASPBERRY_PI)
+                if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
                     return Observable.error(new UnsupportedException());
                 return get(id);
             })
@@ -102,6 +101,11 @@ public class InputManagerImpl implements InputManager {
             .flatMap(syncClient -> syncClient.syncInput(new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName()))
                 .defaultIfEmpty(null)
                 .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date())));
+    }
+
+    @Override
+    public Observable<String> getDevices() {
+        return inputDAO.getDevices();
     }
 
     private Observable<Input> checkIfIoPinIsFreeThenCreate(String deviceId, InputCreateRequest request) {

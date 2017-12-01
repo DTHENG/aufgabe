@@ -144,6 +144,16 @@ class InputDAO {
             });
     }
 
+    Observable<String> getDevices() {
+        return jooqManager.getConnection()
+            .flatMap(connection -> Observable.from(
+                connection
+                    .selectDistinct(field("device"))
+                    .from(TABLE)
+                    .fetch()))
+            .map(result -> result.getValue("device").toString());
+    }
+
     private Observable<Class<? extends InputHandler>> getHandler(String className) {
         return getClassForName(className)
             .flatMap(rawClass -> getNewInstanceOfClass(rawClass)

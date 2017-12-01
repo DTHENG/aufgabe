@@ -2,8 +2,8 @@ package com.dtheng.aufgabe.io;
 
 import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.pi4j.io.gpio.GpioController;
@@ -32,8 +32,8 @@ public class GpioService implements AufgabeService {
     @Override
     public Observable<Void> startUp() {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
-            .filter(deviceType -> deviceType == DeviceType.RASPBERRY_PI)
+            .map(AufgabeConfig::getDeviceType)
+            .filter(deviceType -> deviceType == AufgabeDeviceType.RASPBERRY_PI)
             .doOnNext(Void -> controller = Optional.of(GpioFactory.getInstance()))
             .ignoreElements().cast(Void.class);
     }

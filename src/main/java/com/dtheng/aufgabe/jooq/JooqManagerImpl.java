@@ -1,6 +1,7 @@
 package com.dtheng.aufgabe.jooq;
 
 import com.dtheng.aufgabe.config.ConfigManager;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,9 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import rx.Observable;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -27,6 +30,11 @@ public class JooqManagerImpl implements JooqManager {
     @Inject
     public JooqManagerImpl(ConfigManager configManager) {
         this.configManager = configManager;
+    }
+
+    @Override
+    public Observable<Void> start() {
+        return connect();
     }
 
     @Override
@@ -47,16 +55,19 @@ public class JooqManagerImpl implements JooqManager {
 
     private Observable<Void> connect() {
         return configManager.getConfig()
-            .flatMap(config -> {
-                String url = "jdbc:mysql://localhost:"+ config.getDatabasePort() +"/"+ config.getDatabaseName();
-                try {
-                    configuration = new DefaultConfiguration()
-                        .set(DriverManager.getConnection(url, config.getDatabaseUser(), config.getDatabasePassword()))
-                        .set(SQLDialect.MYSQL);
-                    return Observable.empty();
-                } catch (Exception e) {
-                    return Observable.error(e);
-                }
-            });
+            .flatMap(config -> createConnection("jdbc:mysql://localhost:"+ config.getDatabasePort() +"/"+ config.getDatabaseName(), config))
+            .doOnNext(connection ->
+                configuration = new DefaultConfiguration()
+                    .set(connection)
+                    .set(SQLDialect.MYSQL))
+            .ignoreElements().cast(Void.class);
+    }
+
+    private Observable<Connection> createConnection(String url, AufgabeConfig config) {
+        try {
+            return Observable.just(DriverManager.getConnection(url, config.getDatabaseUser(), config.getDatabasePassword()));
+        } catch (SQLException se) {
+            return Observable.error(se);
+        }
     }
 }

@@ -5,7 +5,7 @@ import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.dto.*;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
@@ -54,7 +54,7 @@ public class TaskManagerImpl implements TaskManager {
     @Override
     public Observable<AggregateTask> create(TaskCreateRequest request) {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
+            .map(AufgabeConfig::getDeviceType)
             .flatMap(deviceType -> {
                 Task task = new Task();
                 task.setId(request.getId().isPresent() ? request.getId().get() : "task-"+ new RandomString(8).nextString());

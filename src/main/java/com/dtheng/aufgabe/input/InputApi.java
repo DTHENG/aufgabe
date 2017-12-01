@@ -3,8 +3,8 @@ package com.dtheng.aufgabe.input;
 import com.dtheng.aufgabe.input.dto.InputCreateRequest;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
@@ -13,7 +13,6 @@ import com.dtheng.aufgabe.http.util.RequestUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import rx.Observable;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -86,9 +85,9 @@ public class InputApi {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             configManager.getConfig()
-                .map(Configuration::getDeviceType)
+                .map(AufgabeConfig::getDeviceType)
                 .filter(deviceType -> {
-                    if (deviceType != DeviceType.RASPBERRY_PI)
+                    if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
                         throw new UnsupportedException();
                     return true;
                 })
@@ -122,9 +121,9 @@ public class InputApi {
         @Override
         protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             configManager.getConfig()
-                .map(Configuration::getDeviceType)
+                .map(AufgabeConfig::getDeviceType)
                 .filter(deviceType -> {
-                    if (deviceType != DeviceType.RASPBERRY_PI)
+                    if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
                         throw new UnsupportedException();
                     return true;
                 })

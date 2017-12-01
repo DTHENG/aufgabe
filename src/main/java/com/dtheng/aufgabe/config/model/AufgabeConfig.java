@@ -13,7 +13,7 @@ import java.util.Optional;
 @Getter
 @Setter
 @ToString
-public class Configuration {
+public class AufgabeConfig {
 
     @JsonProperty("http_port") private int httpPort;
 
@@ -27,7 +27,7 @@ public class Configuration {
 
     @JsonProperty("time_zone") private String timeZone;
 
-    @JsonProperty("device_type") private DeviceType deviceType;
+    @JsonProperty("device_type") private AufgabeDeviceType deviceType;
 
     @JsonProperty("sync_remote_ip") private Optional<String> syncRemoteIp = Optional.empty();
 

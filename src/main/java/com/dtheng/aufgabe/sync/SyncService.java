@@ -2,8 +2,8 @@ package com.dtheng.aufgabe.sync;
 
 import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -50,8 +49,8 @@ public class SyncService implements AufgabeService {
     @Override
     public Observable<Void> startUp() {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
-            .filter(deviceType -> deviceType == DeviceType.RASPBERRY_PI)
+            .map(AufgabeConfig::getDeviceType)
+            .filter(deviceType -> deviceType == AufgabeDeviceType.RASPBERRY_PI)
             .doOnNext(raspberryPi -> {
 
                 /** Task */

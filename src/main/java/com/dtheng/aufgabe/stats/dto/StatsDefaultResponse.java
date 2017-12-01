@@ -18,7 +18,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class StatsDefaultResponse {
 
-    private List<String> activeInputs = new ArrayList<>();
     private List<JsonNode> last10Entries = new ArrayList<>();
     private Map<String, Integer> totals = new HashMap<>();
+    private List<AggregateDevice> devices = new ArrayList<>();
 }
