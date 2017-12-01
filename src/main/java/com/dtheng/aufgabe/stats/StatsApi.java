@@ -46,7 +46,6 @@ public class StatsApi {
 
     public static class Default extends AufgabeServlet {
 
-        private DeviceManager deviceManager;
         private InputManager inputManager;
         private TaskManager taskManager;
         private TaskEntryManager taskEntryManager;
@@ -54,8 +53,7 @@ public class StatsApi {
         private AufgabeContext aufgabeContext;
 
         @Inject
-        public Default(DeviceManager deviceManager, InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager, AufgabeContext aufgabeContext) {
-            this.deviceManager = deviceManager;
+        public Default(InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager, AufgabeContext aufgabeContext) {
             this.inputManager = inputManager;
             this.taskManager = taskManager;
             this.taskEntryManager = taskEntryManager;
@@ -66,23 +64,18 @@ public class StatsApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             Observable.zip(
-                    taskEntryManager.get(new EntriesRequest())
-                        .map(EntriesResponse::getEntries)
-                        .flatMap(taskEntries -> Observable.from(taskEntries)
-                            .flatMap(entry -> taskManager.get(entry.getTaskId())
-                                .flatMap(task -> toAggregateTaskEntry(entry, task)))
-                            .toList()),
-                    buildTotalsMap(),
-                    buildDevicesList().toList(),
+                buildDevicesList().toList(),
+                buildTotalsMap(),
+                taskEntryManager.get(new EntriesRequest())
+                    .map(EntriesResponse::getEntries)
+                    .flatMap(taskEntries -> Observable.from(taskEntries)
+                        .flatMap(entry -> taskManager.get(entry.getTaskId())
+                            .flatMap(task -> toAggregateTaskEntry(entry, task)))
+                        .toList()),
                 StatsDefaultResponse::new)
-                .defaultIfEmpty(null)
-                .flatMap(body -> ResponseUtil.set(resp, Optional.ofNullable(body), 200))
+                .flatMap(body -> ResponseUtil.set(resp, body, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
 
         private Observable<AggregateDevice> buildDevicesList() {
@@ -110,10 +103,10 @@ public class StatsApi {
                 inputManager.getDevices().count(),
                 (totalEntries, totalTasks, totalInputs, totalDevices) -> {
                     Map<String, Integer> totals = new HashMap<>();
-                    totals.put("entries", totalEntries);
-                    totals.put("tasks", totalTasks);
-                    totals.put("inputs", totalInputs);
-                    totals.put("devices", totalDevices);
+                    totals.put("entry", totalEntries);
+                    totals.put("task", totalTasks);
+                    totals.put("input", totalInputs);
+                    totals.put("device", totalDevices);
                     return totals;
                 });
         }
