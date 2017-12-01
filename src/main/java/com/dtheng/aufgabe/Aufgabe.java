@@ -9,6 +9,7 @@ import com.dtheng.aufgabe.http.ServletManager;
 import com.dtheng.aufgabe.jooq.JooqManager;
 import com.dtheng.aufgabe.stats.StatsApi;
 import com.dtheng.aufgabe.sync.SyncApi;
+import com.dtheng.aufgabe.sync.SyncService;
 import com.dtheng.aufgabe.task.TaskApi;
 import com.dtheng.aufgabe.taskentry.EntryApi;
 import com.google.inject.*;
@@ -50,14 +51,16 @@ public class Aufgabe {
         private AufgabeContext aufgabeContext;
         private FileManager fileManager;
         private JooqManager jooqManager;
+        private SyncService syncService;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager, JooqManager jooqManager) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager, JooqManager jooqManager, SyncService syncService) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.aufgabeContext = aufgabeContext;
             this.fileManager = fileManager;
             this.jooqManager = jooqManager;
+            this.syncService = syncService;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
@@ -94,6 +97,8 @@ public class Aufgabe {
 
                         // 2. Start services
                         startServices(),
+
+                        syncService.start(),
 
                         // 3. Start http server
                         servletManager.start(config.getHttpPort(), routes)))

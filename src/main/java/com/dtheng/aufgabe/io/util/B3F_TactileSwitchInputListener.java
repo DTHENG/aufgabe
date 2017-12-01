@@ -7,10 +7,12 @@ import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
+@Slf4j
 public class B3F_TactileSwitchInputListener implements GpioPinListenerDigital {
 
     @Setter
