@@ -53,12 +53,6 @@ class InputDAO {
                 .from(TABLE)
                 .where(field("id").eq(id))
                 .fetch()))
-            .retryWhen(e -> e.flatMap(throwable -> {
-                log.info("Got error looking up input {}, {}", id, throwable.toString());
-                if (throwable instanceof DataAccessException)
-                    return Observable.empty();
-                return Observable.error(throwable);
-            }))
             .defaultIfEmpty(null)
             .map(record -> {
                 if (record == null) {
