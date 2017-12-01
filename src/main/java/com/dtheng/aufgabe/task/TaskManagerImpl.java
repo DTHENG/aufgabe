@@ -78,7 +78,7 @@ public class TaskManagerImpl implements TaskManager {
     @Override
     public Observable<Task> performSync(Task task) {
         return syncManager.getSyncClient()
-            .flatMap(syncClient -> syncClient.syncTask(new TaskSyncRequest(task.getId(), task.getCreatedAt().getTime(), task.getDescription()))
+            .flatMap(syncClient -> syncClient.syncTask(new TaskSyncRequest(task.getId(), task.getCreatedAt().getTime(), task.getDescription(), task.getBonuslyMessage()))
                 .defaultIfEmpty(null)
                 .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date())));
     }

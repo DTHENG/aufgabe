@@ -31,5 +31,7 @@ public class AufgabeConfig {
 
     @JsonProperty("sync_remote_ip") private Optional<String> syncRemoteIp = Optional.empty();
 
-    @JsonProperty("sync_private_key") private Optional<String> syncPrivateKey = Optional.empty();
+    @JsonProperty("bonusly_access_token") private Optional<String> bonuslyAccessToken = Optional.empty();
+
+    @JsonProperty("bonusly_api_endpoint") private Optional<String> bonuslyApiEndpoint = Optional.empty();
 }

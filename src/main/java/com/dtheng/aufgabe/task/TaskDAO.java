@@ -42,6 +42,7 @@ class TaskDAO {
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), task.getId())
                 .set(field("description"), task.getDescription())
+                .set(field("bonuslyMessage"), task.getBonuslyMessage())
                 .execute())
             .flatMap(Void -> getTask(task.getId()));
     }
@@ -121,6 +122,7 @@ class TaskDAO {
             oUpdatedAt = DateUtil.parse(record.getValue("updatedAt").toString());
         if (record.getValue("syncedAt") != null)
             oSyncedAt = DateUtil.parse(record.getValue("syncedAt").toString());
+        Optional<String> bonuslyMessage = record.getValue("bonuslyMessage") != null ? Optional.of(record.getValue("bonuslyMessage").toString()) : Optional.empty();
         return Observable.zip(oCreatedAt, oUpdatedAt.defaultIfEmpty(null), oSyncedAt.defaultIfEmpty(null),
             (createdAt, updatedAt, syncedAt) ->
                 new Task(
@@ -128,6 +130,7 @@ class TaskDAO {
                     createdAt,
                     record.getValue("description").toString(),
                     Optional.ofNullable(updatedAt),
-                    Optional.ofNullable(syncedAt)));
+                    Optional.ofNullable(syncedAt),
+                    bonuslyMessage));
     }
 }

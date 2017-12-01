@@ -2,6 +2,8 @@ package com.dtheng.aufgabe.task.dto;
 
 import lombok.*;
 
+import java.util.Optional;
+
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
@@ -15,4 +17,5 @@ public class TaskSyncRequest {
     private String id;
     private long createdAt;
     private String description;
+    private Optional<String> bonuslyMessage = Optional.empty();
 }
