@@ -16,6 +16,6 @@ public class FileManagerImpl implements FileManager {
     public Observable<String> read(String filename) {
         InputStream in = getClass().getResourceAsStream("/"+ filename);
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        return Observable.just(reader.lines().collect(Collectors.joining()));
+        return Observable.just(reader.lines().collect(Collectors.joining("\n")));
     }
 }

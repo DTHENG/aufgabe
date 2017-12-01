@@ -25,22 +25,17 @@ public class SyncManagerImpl implements SyncManager {
     }
 
     @Override
-    public Observable<Void> startUp() {
-        return configManager.getConfig()
-            .filter(configuration -> configuration.getSyncRemoteIp().isPresent())
-            .doOnNext(configuration ->  {
-                restAdapter = new RestAdapter.Builder()
-                    .setEndpoint("http://"+ configuration.getSyncRemoteIp().get())
-                    .build();
-                syncClient = restAdapter.create(SyncClient.class);
-            })
-            .ignoreElements().cast(Void.class);
-    }
-
-    @Override
     public Observable<SyncClient> getSyncClient() {
         if (syncClient == null)
-            return Observable.empty();
+            return configManager.getConfig()
+                .filter(configuration -> configuration.getSyncRemoteIp().isPresent())
+                .doOnNext(configuration ->  {
+                    restAdapter = new RestAdapter.Builder()
+                        .setEndpoint("http://"+ configuration.getSyncRemoteIp().get())
+                        .build();
+                    syncClient = restAdapter.create(SyncClient.class);
+                })
+                .map(Void -> syncClient);
         return Observable.just(syncClient);
     }
 }

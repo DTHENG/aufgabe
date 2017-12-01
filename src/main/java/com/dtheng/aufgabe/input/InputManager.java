@@ -11,8 +11,6 @@ import rx.Observable;
 @ImplementedBy(InputManagerImpl.class)
 public interface InputManager {
 
-    Observable<Void> startUp();
-
     Observable<Input> get(String id);
 
     Observable<InputsResponse> get(InputsRequest request);
@@ -21,5 +19,7 @@ public interface InputManager {
 
     Observable<Input> remove(String id);
 
-    Observable<Input> performSyncRequest(Input task);
+    Observable<Input> performSync(Input input);
+
+    Observable<String> getDevices();
 }

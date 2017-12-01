@@ -7,13 +7,9 @@ import com.dtheng.aufgabe.io.RaspberryPiManager;
 import com.dtheng.aufgabe.io.util.GP2Y0A21YK0F_IrDistanceSensorInputListener;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.pi4j.wiringpi.Gpio;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
-
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>

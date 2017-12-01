@@ -1,15 +1,14 @@
 package com.dtheng.aufgabe.task;
 
+import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
-import com.dtheng.aufgabe.exceptions.UnsupportedException;
-import com.dtheng.aufgabe.sync.SyncClient;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.dto.*;
+import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
@@ -33,14 +32,17 @@ public class TaskManagerImpl implements TaskManager {
     private TaskEntryManager taskEntryManager;
     private SyncManager syncManager;
     private ConfigManager configManager;
+    private EventManager eventManager;
 
     @Inject
-    public TaskManagerImpl(TaskDAO taskDAO, InputManager inputManager, TaskEntryManager taskEntryManager, SyncManager syncManager, ConfigManager configManager) {
+    public TaskManagerImpl(TaskDAO taskDAO, InputManager inputManager, TaskEntryManager taskEntryManager, SyncManager syncManager,
+                           ConfigManager configManager, EventManager eventManager) {
         this.taskDAO = taskDAO;
         this.inputManager = inputManager;
         this.taskEntryManager = taskEntryManager;
         this.syncManager = syncManager;
         this.configManager = configManager;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -52,21 +54,15 @@ public class TaskManagerImpl implements TaskManager {
     @Override
     public Observable<AggregateTask> create(TaskCreateRequest request) {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
+            .map(AufgabeConfig::getDeviceType)
             .flatMap(deviceType -> {
                 Task task = new Task();
-                if (request.getId().isPresent())
-                    task.setId(request.getId().get());
-                else
-                    task.setId("task-"+ new RandomString(8).nextString());
-                if (request.getCreatedAt().isPresent())
-                    task.setCreatedAt(request.getCreatedAt().get());
-                else
-                    task.setCreatedAt(new Date());
+                task.setId(request.getId().isPresent() ? request.getId().get() : "task-"+ new RandomString(8).nextString());
+                task.setCreatedAt(request.getCreatedAt().isPresent() ? request.getCreatedAt().get() : new Date());
                 task.setDescription(request.getDescription());
-                return taskDAO.createTask(task)
-                    .flatMap(this::performSyncRequest);
+                return taskDAO.createTask(task);
             })
+            .doOnNext(task -> eventManager.getTaskCreated().trigger(new TaskCreatedEvent(task.getId())))
             .flatMap(this::aggregate);
     }
 
@@ -80,21 +76,11 @@ public class TaskManagerImpl implements TaskManager {
     }
 
     @Override
-    public Observable<Task> performSyncRequest(Task task) {
-        return configManager.getConfig()
-            .map(Configuration::getDeviceType)
-            .flatMap(deviceType -> {
-                if (deviceType == DeviceType.RASPBERRY_PI) {
-                    return syncManager.getSyncClient()
-                        .flatMap(syncClient -> Observable.defer(() ->
-                            Observable.just(
-                                syncClient.syncTask(new TaskSyncRequest(task.getId(), task.getCreatedAt().getTime(), task.getDescription()))
-                                    .toBlocking().single()))
-                            .defaultIfEmpty(null)
-                            .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date())));
-                }
-                return Observable.just(task);
-            });
+    public Observable<Task> performSync(Task task) {
+        return syncManager.getSyncClient()
+            .flatMap(syncClient -> syncClient.syncTask(new TaskSyncRequest(task.getId(), task.getCreatedAt().getTime(), task.getDescription()))
+                .defaultIfEmpty(null)
+                .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date())));
     }
 
     private Observable<AggregateTask> aggregate(Task task) {

@@ -1,8 +1,6 @@
-package com.dtheng.aufgabe.io.event;
+package com.dtheng.aufgabe.taskentry.event;
 
 import lombok.*;
-
-import java.util.Date;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -12,8 +10,7 @@ import java.util.Date;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class GP2Y0A21YK0F_IrDistanceSensorInputEvent {
+public class B3F_TactileSwitchInputPressedEvent {
 
     private String inputId;
-    private Date lastMovement;
 }

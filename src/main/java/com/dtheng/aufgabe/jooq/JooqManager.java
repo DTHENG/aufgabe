@@ -10,9 +10,9 @@ import rx.Observable;
 @ImplementedBy(JooqManagerImpl.class)
 public interface JooqManager {
 
-	Observable<DSLContext> getConnection();
+    Observable<Void> start();
 
-	Observable<Void> startUp();
+	Observable<DSLContext> getConnection();
 
 	Observable<DSLContext> reconnect();
 }

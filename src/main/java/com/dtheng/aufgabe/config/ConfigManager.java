@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.config;
 
-import com.dtheng.aufgabe.config.model.Configuration;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.google.inject.ImplementedBy;
 import rx.Observable;
 
@@ -14,5 +14,5 @@ public interface ConfigManager {
 
 	Observable<Void> load(Optional<String> customConfigFileName);
 
-	Observable<Configuration> getConfig();
+	Observable<AufgabeConfig> getConfig();
 }

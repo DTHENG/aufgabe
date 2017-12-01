@@ -1,18 +1,18 @@
 package com.dtheng.aufgabe.input;
 
-import com.dtheng.aufgabe.AufgabeContext;
+import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.dto.*;
+import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.Configuration;
-import com.dtheng.aufgabe.config.model.DeviceType;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.util.RandomString;
 import com.google.inject.Inject;
-import com.pi4j.io.gpio.GpioFactory;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
@@ -28,44 +28,17 @@ public class InputManagerImpl implements InputManager {
     private InputDAO inputDAO;
     private DeviceManager deviceManager;
     private ConfigManager configManager;
-    private AufgabeContext aufgabeContext;
     private SyncManager syncManager;
+    private EventManager eventManager;
 
     @Inject
-    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager, AufgabeContext aufgabeContext, SyncManager syncManager) {
+    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager,
+                            SyncManager syncManager, EventManager eventManager) {
         this.inputDAO = inputDAO;
         this.deviceManager = deviceManager;
         this.configManager = configManager;
-        this.aufgabeContext = aufgabeContext;
         this.syncManager = syncManager;
-    }
-
-    @Override
-    public Observable<Void> startUp() {
-        return Observable.zip(
-            deviceManager.getDeviceId(),
-            configManager.getConfig()
-                .map(Configuration::getDeviceType),
-            (deviceId, deviceType) -> {
-                switch (deviceType) {
-                    case RASPBERRY_PI:
-                        InputsRequest request = new InputsRequest();
-                        request.setLimit(29);
-                        request.setDevice(Optional.of(deviceId));
-                        return get(request)
-                            .flatMap(resp -> Observable.from(resp.getInputs())
-                                .flatMap(input -> {
-                                    InputHandler handler = aufgabeContext.getInjector().getInstance(input.getHandler());
-                                    return handler.startUp(input)
-                                        .defaultIfEmpty(null);
-                                })
-                                .toList());
-                    default:
-                        return Observable.empty();
-                }
-            })
-            .flatMap(o -> o)
-            .ignoreElements().cast(Void.class);
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -76,7 +49,7 @@ public class InputManagerImpl implements InputManager {
     @Override
     public Observable<Input> create(InputCreateRequest request) {
         return deviceManager.getDeviceId()
-            .flatMap(deviceId -> configManager.getConfig().map(Configuration::getDeviceType)
+            .flatMap(deviceId -> configManager.getConfig().map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
                     switch (deviceType) {
                         case RASPBERRY_PI:
@@ -99,8 +72,8 @@ public class InputManagerImpl implements InputManager {
                         default:
                             return Observable.error(new UnsupportedException());
                     }
-                }))
-            .flatMap(this::performSyncRequest);
+                })
+                .doOnNext(input -> eventManager.getInputCreated().trigger(new InputCreatedEvent(input.getId()))));
     }
 
     @Override
@@ -111,9 +84,9 @@ public class InputManagerImpl implements InputManager {
     @Override
     public Observable<Input> remove(String id) {
         return configManager.getConfig()
-            .map(Configuration::getDeviceType)
+            .map(AufgabeConfig::getDeviceType)
             .flatMap(deviceType -> {
-                if (deviceType != DeviceType.RASPBERRY_PI)
+                if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
                     return Observable.error(new UnsupportedException());
                 return get(id);
             })
@@ -123,23 +96,17 @@ public class InputManagerImpl implements InputManager {
     }
 
     @Override
-    public Observable<Input> performSyncRequest(Input input) {
-        return configManager.getConfig()
-            .map(Configuration::getDeviceType)
-            .flatMap(deviceType -> {
-                if (deviceType == DeviceType.RASPBERRY_PI) {
-                    return syncManager.getSyncClient()
-                        .flatMap(syncClient -> Observable.defer(() ->
-                            Observable.just(
-                                syncClient.syncInput(new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName()))
-                                    .toBlocking().single()))
-                            .defaultIfEmpty(null)
-                            .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date())));
-                }
-                return Observable.just(input);
-            });
+    public Observable<Input> performSync(Input input) {
+        return syncManager.getSyncClient()
+            .flatMap(syncClient -> syncClient.syncInput(new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName()))
+                .defaultIfEmpty(null)
+                .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date())));
     }
 
+    @Override
+    public Observable<String> getDevices() {
+        return inputDAO.getDevices();
+    }
 
     private Observable<Input> checkIfIoPinIsFreeThenCreate(String deviceId, InputCreateRequest request) {
         InputsRequest existingInputRequest = new InputsRequest();
