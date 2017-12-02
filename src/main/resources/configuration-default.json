@@ -4,5 +4,10 @@
   "db_password": "abcd1234",
   "db_port": 3306,
   "db_name": "aufgabe",
-  "time_zone": "America/Los_Angeles"
+  "time_zone": "America/Los_Angeles",
+  "device_type": "MAC_OS",
+  "sync_remote_ip": null,
+  "bonusly_access_token": null,
+  "bonusly_api_endpoint": null,
+  "bonusly_enabled": false
 }

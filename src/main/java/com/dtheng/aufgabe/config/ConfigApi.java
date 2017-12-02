@@ -1,9 +1,9 @@
 package com.dtheng.aufgabe.config;
 
-import com.dtheng.aufgabe.button.ButtonManager;
-import com.dtheng.aufgabe.button.dto.ButtonsRequest;
-import com.dtheng.aufgabe.button.dto.ButtonsResponse;
-import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.input.InputManager;
+import com.dtheng.aufgabe.input.dto.InputsRequest;
+import com.dtheng.aufgabe.input.dto.InputsResponse;
+import com.dtheng.aufgabe.device.DeviceService;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
@@ -24,42 +24,42 @@ import java.util.Optional;
 @Slf4j
 public class ConfigApi {
 
-    public static class ButtonConfig extends AufgabeServlet {
+    public static class InputConfig extends AufgabeServlet {
 
-        private ButtonManager buttonManager;
-        private DeviceManager deviceManager;
+        private InputManager inputManager;
+        private DeviceService deviceService;
         private TaskManager taskManager;
 
         @Inject
-        public ButtonConfig(ButtonManager buttonManager, DeviceManager deviceManager, TaskManager taskManager) {
-            this.buttonManager = buttonManager;
-            this.deviceManager = deviceManager;
+        public InputConfig(InputManager inputManager, DeviceService deviceService, TaskManager taskManager) {
+            this.inputManager = inputManager;
+            this.deviceService = deviceService;
             this.taskManager = taskManager;
         }
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            deviceManager.getDeviceId()
-                .flatMap(deviceId -> {
-                    ButtonsRequest buttonsRequest = new ButtonsRequest();
-                    buttonsRequest.setLimit(100);
-                    buttonsRequest.setDevice(Optional.of(deviceId));
-                    buttonsRequest.setOrderBy(Optional.of("ioPin"));
-                    buttonsRequest.setOrderDirection(Optional.of("asc"));
-                    return buttonManager.get(buttonsRequest);
-                })
-                .map(ButtonsResponse::getButtons)
-                .flatMap(Observable::from)
-                .concatMap(button -> taskManager.get(button.getTaskId())
-                    .map(task -> task.getTask().getDescription()))
+            getTasks()
                 .toList()
                 .flatMap(tasks -> ResponseUtil.set(resp, tasks, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
+        }
+
+        private Observable<String> getTasks() {
+            return deviceService.getDeviceId()
+                .flatMap(deviceId -> {
+                    InputsRequest inputsRequest = new InputsRequest();
+                    inputsRequest.setLimit(100);
+                    inputsRequest.setDevice(Optional.of(deviceId));
+                    inputsRequest.setOrderBy(Optional.of("ioPin"));
+                    inputsRequest.setOrderDirection(Optional.of("asc"));
+                    return inputManager.get(inputsRequest);
+                })
+                .map(InputsResponse::getInputs)
+                .flatMap(Observable::from)
+                .concatMap(input -> taskManager.get(input.getTaskId())
+                    .map(task -> task.getTask().getDescription()));
         }
     }
 }

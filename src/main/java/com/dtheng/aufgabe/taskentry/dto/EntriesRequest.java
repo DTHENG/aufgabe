@@ -17,4 +17,5 @@ public class EntriesRequest {
 	private int offset = 0;
 	private int limit = 10;
 	private Optional<String> taskId = Optional.empty();
+	private boolean onlyShowNeedSync = false;
 }

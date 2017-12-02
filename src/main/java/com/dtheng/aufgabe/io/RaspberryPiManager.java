@@ -1,7 +1,7 @@
 package com.dtheng.aufgabe.io;
 
-import com.dtheng.aufgabe.button.model.Button;
 import com.google.inject.ImplementedBy;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
 import rx.Observable;
 
 /**
@@ -10,5 +10,5 @@ import rx.Observable;
 @ImplementedBy(RaspberryPiManagerImpl.class)
 public interface RaspberryPiManager {
 
-	Observable<Void> startUp();
+    Observable<GpioPinDigitalInput> getDigitalInput(String ioPin);
 }

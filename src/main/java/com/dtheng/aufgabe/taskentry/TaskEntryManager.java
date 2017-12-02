@@ -18,4 +18,6 @@ public interface TaskEntryManager {
 	Observable<EntriesResponse> get(EntriesRequest request);
 
 	Observable<TaskEntry> create(TaskEntryCreateRequest request);
+
+    Observable<TaskEntry> performSync(TaskEntry taskEntry);
 }

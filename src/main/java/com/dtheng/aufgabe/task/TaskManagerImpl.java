@@ -1,9 +1,15 @@
 package com.dtheng.aufgabe.task;
 
-import com.dtheng.aufgabe.button.ButtonManager;
-import com.dtheng.aufgabe.button.dto.ButtonsRequest;
-import com.dtheng.aufgabe.button.dto.ButtonsResponse;
+import com.dtheng.aufgabe.event.EventManager;
+import com.dtheng.aufgabe.input.InputManager;
+import com.dtheng.aufgabe.input.dto.InputsRequest;
+import com.dtheng.aufgabe.input.dto.InputsResponse;
+import com.dtheng.aufgabe.config.ConfigManager;
+import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.dto.*;
+import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
+import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
@@ -23,14 +29,21 @@ import java.util.Optional;
 public class TaskManagerImpl implements TaskManager {
 
     private TaskDAO taskDAO;
-    private ButtonManager buttonManager;
+    private InputManager inputManager;
     private TaskEntryManager taskEntryManager;
+    private SyncManager syncManager;
+    private ConfigManager configManager;
+    private EventManager eventManager;
 
     @Inject
-    public TaskManagerImpl(TaskDAO taskDAO, ButtonManager buttonManager, TaskEntryManager taskEntryManager) {
+    public TaskManagerImpl(TaskDAO taskDAO, InputManager inputManager, TaskEntryManager taskEntryManager, SyncManager syncManager,
+                           ConfigManager configManager, EventManager eventManager) {
         this.taskDAO = taskDAO;
-        this.buttonManager = buttonManager;
+        this.inputManager = inputManager;
         this.taskEntryManager = taskEntryManager;
+        this.syncManager = syncManager;
+        this.configManager = configManager;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -41,11 +54,16 @@ public class TaskManagerImpl implements TaskManager {
 
     @Override
     public Observable<AggregateTask> create(TaskCreateRequest request) {
-        Task task = new Task();
-        task.setId("task-"+ new RandomString(8).nextString());
-        task.setCreatedAt(new Date());
-        task.setDescription(request.getDescription());
-        return taskDAO.createTask(task)
+        return configManager.getConfig()
+            .map(AufgabeConfig::getDeviceType)
+            .flatMap(deviceType -> {
+                Task task = new Task();
+                task.setId(request.getId().isPresent() ? request.getId().get() : "task-"+ new RandomString(8).nextString());
+                task.setCreatedAt(request.getCreatedAt().isPresent() ? request.getCreatedAt().get() : new Date());
+                task.setDescription(request.getDescription());
+                return taskDAO.createTask(task);
+            })
+            .doOnNext(task -> eventManager.getTaskCreated().trigger(new TaskCreatedEvent(task.getId())))
             .flatMap(this::aggregate);
     }
 
@@ -58,16 +76,39 @@ public class TaskManagerImpl implements TaskManager {
                 .map(aggregateTasks -> new AggregateTasksResponse(tasksResponse.getOffset(), tasksResponse.getLimit(), tasksResponse.getTotal(), aggregateTasks)));
     }
 
+    @Override
+    public Observable<Task> performSync(Task task) {
+        return syncManager.getSyncClient()
+            .flatMap(syncClient -> syncClient.syncTask(
+                new TaskSyncRequest(
+                    task.getId(),
+                    task.getCreatedAt().getTime(),
+                    task.getDescription(),
+                    task.getBonuslyMessage().orElse(null),
+                    task.getSyncedAt().isPresent() ? task.getSyncedAt().get().getTime() : null))
+                .defaultIfEmpty(null)
+                .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date())));
+    }
+
+    @Override
+    public Observable<AggregateTask> update(String id, TaskUpdateRequest request) {
+        return taskDAO.update(id, request)
+            .defaultIfEmpty(null)
+            .flatMap(Void -> taskDAO.setUpdatedAt(id, new Date()))
+            .doOnNext(task -> eventManager.getTaskUpdatedEvent().trigger(new TaskUpdatedEvent(task.getId())))
+            .flatMap(this::aggregate);
+    }
+
     private Observable<AggregateTask> aggregate(Task task) {
-        ButtonsRequest buttonsRequest = new ButtonsRequest();
-        buttonsRequest.setOffset(0);
-        buttonsRequest.setLimit(10);
-        buttonsRequest.setTaskId(Optional.of(task.getId()));
+        InputsRequest inputsRequest = new InputsRequest();
+        inputsRequest.setOffset(0);
+        inputsRequest.setLimit(5);
+        inputsRequest.setTaskId(Optional.of(task.getId()));
         return Observable.zip(
-            buttonManager.get(buttonsRequest)
-                .map(ButtonsResponse::getButtons),
-            taskEntryManager.get(new EntriesRequest(0, 10, Optional.of(task.getId())))
+            inputManager.get(inputsRequest)
+                .map(InputsResponse::getInputs),
+            taskEntryManager.get(new EntriesRequest(0, 3, Optional.of(task.getId()), false))
                 .map(EntriesResponse::getEntries),
-            (buttons, entries) -> new AggregateTask(task, entries, buttons));
+            (inputs, entries) -> new AggregateTask(task, entries, inputs)) ;
     }
 }

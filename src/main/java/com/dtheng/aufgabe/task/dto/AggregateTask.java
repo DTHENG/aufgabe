@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.task.dto;
 
-import com.dtheng.aufgabe.button.model.Button;
+import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.model.TaskEntry;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -20,5 +20,5 @@ public class AggregateTask {
 
     @JsonUnwrapped private Task task;
     private List<TaskEntry> entries;
-    private List<Button> buttons;
+    private List<Input> inputs;
 }

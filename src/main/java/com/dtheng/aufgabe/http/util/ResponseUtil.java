@@ -20,7 +20,7 @@ public class ResponseUtil {
             mapper.findAndRegisterModules();
             ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
             resp.setStatus(status);
-            resp.setHeader("Server", "Raspberry Pi 3");
+            resp.setHeader("Server", "dtheng.com");
             resp.setContentType("application/json");
             try {
                 resp.getWriter().write(writer.writeValueAsString(body)+"\n");

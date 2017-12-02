@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -16,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 public class StatsDefaultResponse {
 
-    private List<String> activeButtons = new ArrayList<>();
-    private List<JsonNode> last10Entries = new ArrayList<>();
+    private List<AggregateDevice> devices = new ArrayList<>();
+    private Map<String, Integer> totals = new HashMap<>();
+    private List<JsonNode> recent = new ArrayList<>();
 }

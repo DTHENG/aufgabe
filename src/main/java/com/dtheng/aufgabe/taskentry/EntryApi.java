@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -39,7 +40,8 @@ public class EntryApi {
                         return Observable.error(new AufgabeException("Invalid request"));
                     return taskEntryManager.get(request);
                 })
-                .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
+                .defaultIfEmpty(null)
+                .flatMap(entries -> ResponseUtil.set(resp, Optional.ofNullable(entries), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {},
                     error -> {
@@ -61,7 +63,8 @@ public class EntryApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             taskEntryManager.get(req.getPathInfo().substring(1, req.getPathInfo().length()))
-                .flatMap(taskEntry -> ResponseUtil.set(resp, taskEntry, 200))
+                .defaultIfEmpty(null)
+                .flatMap(taskEntry -> ResponseUtil.set(resp, Optional.ofNullable(taskEntry), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {},
                     error -> {
