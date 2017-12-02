@@ -7,7 +7,7 @@ import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
-import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.DeviceService;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.sync.SyncManager;
@@ -26,16 +26,16 @@ import java.util.Optional;
 public class InputManagerImpl implements InputManager {
 
     private InputDAO inputDAO;
-    private DeviceManager deviceManager;
+    private DeviceService deviceService;
     private ConfigManager configManager;
     private SyncManager syncManager;
     private EventManager eventManager;
 
     @Inject
-    public InputManagerImpl(InputDAO inputDAO, DeviceManager deviceManager, ConfigManager configManager,
+    public InputManagerImpl(InputDAO inputDAO, DeviceService deviceService, ConfigManager configManager,
                             SyncManager syncManager, EventManager eventManager) {
         this.inputDAO = inputDAO;
-        this.deviceManager = deviceManager;
+        this.deviceService = deviceService;
         this.configManager = configManager;
         this.syncManager = syncManager;
         this.eventManager = eventManager;
@@ -48,7 +48,7 @@ public class InputManagerImpl implements InputManager {
 
     @Override
     public Observable<Input> create(InputCreateRequest request) {
-        return deviceManager.getDeviceId()
+        return deviceService.getDeviceId()
             .flatMap(deviceId -> configManager.getConfig().map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
                     switch (deviceType) {

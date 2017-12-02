@@ -14,5 +14,5 @@ import java.util.Map;
 @ImplementedBy(ServletManagerImpl.class)
 public interface ServletManager {
 
-    Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config);
+    Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config, Map<String, Object> metaData);
 }

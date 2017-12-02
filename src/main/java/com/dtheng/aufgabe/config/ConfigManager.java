@@ -12,7 +12,7 @@ import java.util.Optional;
 @ImplementedBy(ConfigManagerImpl.class)
 public interface ConfigManager {
 
-	Observable<Void> load(Optional<String> customConfigFileName);
+	Observable<String> load(Optional<String> customConfigFileName);
 
 	Observable<AufgabeConfig> getConfig();
 }

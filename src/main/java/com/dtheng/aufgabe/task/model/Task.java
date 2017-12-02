@@ -20,4 +20,5 @@ public class Task {
 	private String description;
     private Optional<Date> updatedAt = Optional.empty();
     private Optional<Date> syncedAt = Optional.empty();
+    private Optional<String> bonuslyMessage = Optional.empty();
 }

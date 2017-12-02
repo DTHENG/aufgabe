@@ -3,15 +3,13 @@ package com.dtheng.aufgabe.input;
 import com.dtheng.aufgabe.input.dto.*;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
-import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.*;
-import org.jooq.exception.DataAccessException;
 import rx.Observable;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,15 +25,15 @@ class InputDAO {
 
     private static final Table<Record> TABLE = table("input");
 
-    private JooqManager jooqManager;
+    private JooqService jooqService;
 
     @Inject
-    public InputDAO(JooqManager jooqManager) {
-        this.jooqManager = jooqManager;
+    public InputDAO(JooqService jooqService) {
+        this.jooqService = jooqService;
     }
 
     Observable<Input> createInput(Input input) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), input.getId())
                 .set(field("createdAt"), input.getCreatedAt())
@@ -48,7 +46,7 @@ class InputDAO {
     }
 
     Observable<Input> getInput(String id) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
                 .where(field("id").eq(id))
@@ -65,7 +63,7 @@ class InputDAO {
     }
 
     Observable<Void> removeInput(String id) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("removedAt"), new Date())
@@ -76,7 +74,7 @@ class InputDAO {
     }
 
     Observable<InputsResponse> getInputs(InputsRequest request) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 List<Condition> where = new ArrayList<>();
                 where.add(field("removedAt").isNull());
@@ -117,7 +115,7 @@ class InputDAO {
     }
 
     Observable<Input> setUpdatedAt(String id, Date updatedAt) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("updatedAt"), updatedAt)
@@ -128,7 +126,7 @@ class InputDAO {
     }
 
     Observable<Input> setSyncedAt(String id, Date syncedAt) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("syncedAt"), syncedAt)
@@ -139,7 +137,7 @@ class InputDAO {
     }
 
     Observable<String> getDevices() {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> Observable.from(
                 connection
                     .selectDistinct(field("device"))

@@ -7,10 +7,8 @@ import rx.Observable;
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
-@ImplementedBy(JooqManagerImpl.class)
-public interface JooqManager {
-
-    Observable<Void> start();
+@ImplementedBy(JooqServiceImpl.class)
+public interface JooqService {
 
 	Observable<DSLContext> getConnection();
 

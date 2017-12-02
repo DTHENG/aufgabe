@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.device;
 
+import com.dtheng.aufgabe.AufgabeService;
 import com.google.inject.Singleton;
 import com.pi4j.system.SystemInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -16,15 +19,28 @@ import java.util.Optional;
  */
 @Slf4j
 @Singleton
-public class DeviceManagerImpl implements DeviceManager {
+public class DeviceServiceImpl implements DeviceService, AufgabeService {
 
     private Optional<String> id = Optional.empty();
 
     @Override
+    public Observable<Map<String, Object>> startUp() {
+        return loadId()
+            .map(deviceId -> {
+                Map<String, Object> metaData = new HashMap<>();
+                metaData.put("deviceId", deviceId);
+                return metaData;
+            });
+    }
+
+    @Override
     public Observable<String> getDeviceId() {
-        if ( ! id.isPresent())
-            return loadId();
         return Observable.just(id.get());
+    }
+
+    @Override
+    public long order() {
+        return 1506990000;
     }
 
     private Observable<String> loadId() {

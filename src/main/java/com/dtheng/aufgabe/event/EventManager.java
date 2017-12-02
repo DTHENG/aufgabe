@@ -2,6 +2,7 @@ package com.dtheng.aufgabe.event;
 
 import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
+import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
 import com.dtheng.aufgabe.taskentry.event.B3F_TactileSwitchInputPressedEvent;
 import com.dtheng.aufgabe.taskentry.event.GP2Y0A21YK0F_IrDistanceSensorInputEvent;
 import com.dtheng.aufgabe.taskentry.event.TaskEntryCreatedEvent;
@@ -19,6 +20,8 @@ public interface EventManager {
     Event<TaskEntryCreatedEvent> getTaskEntryCreated();
 
     Event<TaskCreatedEvent> getTaskCreated();
+
+    Event<TaskUpdatedEvent> getTaskUpdatedEvent();
 
     Event<B3F_TactileSwitchInputPressedEvent> getB3F_TactileSwitchInputPressed();
 

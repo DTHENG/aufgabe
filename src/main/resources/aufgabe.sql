@@ -18,6 +18,7 @@ CREATE TABLE task (
     description TEXT NOT NULL,
     updatedAt TIMESTAMP NULL,
     syncedAt TIMESTAMP NULL,
+    bonuslyMessage TEXT NULL,
     PRIMARY KEY(id)
 );
 

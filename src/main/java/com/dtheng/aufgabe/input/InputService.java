@@ -4,12 +4,14 @@ import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
-import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.DeviceService;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -20,21 +22,21 @@ public class InputService implements AufgabeService {
 
     private ConfigManager configManager;
     private InputManager inputManager;
-    private DeviceManager deviceManager;
+    private DeviceService deviceService;
     private AufgabeContext aufgabeContext;
 
     @Inject
-    public InputService(ConfigManager configManager, InputManager inputManager, DeviceManager deviceManager, AufgabeContext aufgabeContext) {
+    public InputService(ConfigManager configManager, InputManager inputManager, DeviceService deviceService, AufgabeContext aufgabeContext) {
         this.configManager = configManager;
         this.inputManager = inputManager;
-        this.deviceManager = deviceManager;
+        this.deviceService = deviceService;
         this.aufgabeContext = aufgabeContext;
     }
 
     @Override
-    public Observable<Void> startUp() {
+    public Observable<Map<String, Object>> startUp() {
         return Observable.zip(
-            deviceManager.getDeviceId(),
+            deviceService.getDeviceId(),
             configManager.getConfig()
                 .map(AufgabeConfig::getDeviceType),
             (deviceId, deviceType) -> {
@@ -56,6 +58,11 @@ public class InputService implements AufgabeService {
                 }
             })
             .flatMap(o -> o)
-            .ignoreElements().cast(Void.class);
+            .map(Void -> new HashMap<>());
+    }
+
+    @Override
+    public long order() {
+        return 1511942400;
     }
 }

@@ -12,11 +12,8 @@ import java.util.Optional;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class TaskSyncRequest {
+public class TaskUpdateRequest {
 
-    private String id;
-    private long createdAt;
-    private String description;
-    private String bonuslyMessage;
-    private long syncedAt;
+    private Optional<String> description = Optional.empty();
+    private Optional<String> bonuslyMessage = Optional.empty();
 }

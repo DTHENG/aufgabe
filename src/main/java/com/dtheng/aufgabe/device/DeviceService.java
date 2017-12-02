@@ -6,8 +6,8 @@ import rx.Observable;
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
-@ImplementedBy(DeviceManagerImpl.class)
-public interface DeviceManager {
+@ImplementedBy(DeviceServiceImpl.class)
+public interface DeviceService {
 
     Observable<String> getDeviceId();
 }

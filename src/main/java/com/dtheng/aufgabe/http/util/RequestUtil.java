@@ -2,6 +2,7 @@ package com.dtheng.aufgabe.http.util;
 
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import java.io.InputStreamReader;
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
+@Slf4j
 public class RequestUtil {
 
     public static <T> Observable<T> getBody(HttpServletRequest request, Class<T> classRef) {
@@ -47,6 +49,7 @@ public class RequestUtil {
         if (throwable != null)
             return Observable.error(throwable);
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
         if (stringBuilder.toString().isEmpty())
             return Observable.empty();
         try {

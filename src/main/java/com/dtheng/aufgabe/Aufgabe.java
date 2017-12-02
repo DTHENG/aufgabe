@@ -6,7 +6,7 @@ import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.io.FileManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.ServletManager;
-import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.stats.StatsApi;
 import com.dtheng.aufgabe.sync.SyncApi;
 import com.dtheng.aufgabe.sync.SyncService;
@@ -50,24 +50,25 @@ public class Aufgabe {
         private ConfigManager configManager;
         private AufgabeContext aufgabeContext;
         private FileManager fileManager;
-        private JooqManager jooqManager;
+        private JooqService jooqService;
         private SyncService syncService;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager, JooqManager jooqManager, SyncService syncService) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager, JooqService jooqService, SyncService syncService) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.aufgabeContext = aufgabeContext;
             this.fileManager = fileManager;
-            this.jooqManager = jooqManager;
+            this.jooqService = jooqService;
             this.syncService = syncService;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {
+            Map<String, Object> startUpMetaData = new HashMap<>();
             return fileManager.read("loghead.txt")
                 .doOnNext(log::info)
                 .flatMap(Void -> configManager.load(customConfigFileName))
-                .defaultIfEmpty(null)
+                .doOnNext(configFileName -> startUpMetaData.put("config", configFileName))
                 .flatMap(Void -> configManager.getConfig())
                 .flatMap(config -> {
 
@@ -78,6 +79,7 @@ public class Aufgabe {
                     routes.put("/task", TaskApi.CreateTask.class);
                     routes.put("/tasks", TaskApi.Tasks.class);
                     routes.put("/taskFromId/*", TaskApi.GetTask.class);
+                    routes.put("/task/update/*", TaskApi.UpdateTask.class);
                     routes.put("/input", InputApi.CreateCreate.class);
                     routes.put("/inputs", InputApi.Inputs.class);
                     routes.put("/inputFromId/*", InputApi.GetInput.class);
@@ -90,21 +92,15 @@ public class Aufgabe {
                     routes.put("/sync/entry", SyncApi.SyncEntry.class);
                     routes.put("/sync/input", SyncApi.SyncInput.class);
 
-                    return Observable.concat(Arrays.asList(
+                    startUpMetaData.put("port", config.getHttpPort());
 
-                        // 1. Connect database
-                        jooqManager.start(),
-
-                        // 2. Start services
-                        startServices(),
-
-                        syncService.start(),
-
-                        // 3. Start http server
-                        servletManager.start(config.getHttpPort(), routes)))
-
-                        .defaultIfEmpty(null)
-                        .toList();
+                    return startServices()
+                        .reduce(startUpMetaData, (aggregateMetaDta, newMetaData) -> {
+                            for (String key : newMetaData.keySet())
+                                aggregateMetaDta.put(key, newMetaData.get(key));
+                            return aggregateMetaDta;
+                        })
+                        .flatMap(metaData -> servletManager.start(config.getHttpPort(), routes, metaData));
                 })
                 .ignoreElements().cast(Void.class);
         }
@@ -114,15 +110,25 @@ public class Aufgabe {
          *
          * @return nope
          */
-        private Observable<Void> startServices() {
+        private Observable<Map<String, Object>> startServices() {
             Reflections reflections = new Reflections("com.dtheng.aufgabe");
             Set<Class<? extends AufgabeService>> classes = reflections.getSubTypesOf(AufgabeService.class);
             return Observable.from(classes)
                 .map(aufgabeContext.getInjector()::getInstance)
+                .toSortedList((service1, service2) -> {
+                    if (service1.order() == service2.order())
+                        return 0;
+                    if (service1.order() > service2.order())
+                        return 1;
+                    return -1;
+                })
+                .flatMap(Observable::from)
                 .flatMap(AufgabeService::startUp)
-                .defaultIfEmpty(null)
-                .toList()
-                .ignoreElements().cast(Void.class);
+                .reduce(new HashMap<String, Object>(), (aggregateMetaDta, newMetaData) -> {
+                    for (String key : newMetaData.keySet())
+                        aggregateMetaDta.put(key, newMetaData.get(key));
+                    return aggregateMetaDta;
+                });
         }
     }
 }

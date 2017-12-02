@@ -6,7 +6,6 @@ import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
@@ -17,7 +16,6 @@ import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.task.dto.AggregateTask;
 import com.dtheng.aufgabe.task.dto.AggregateTasksResponse;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
-import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
@@ -35,7 +33,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -63,10 +60,12 @@ public class StatsApi {
 
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            EntriesRequest entriesRequest = new EntriesRequest();
+            entriesRequest.setLimit(5);
             Observable.zip(
                 buildDevicesList().toList(),
                 buildTotalsMap(),
-                taskEntryManager.get(new EntriesRequest())
+                taskEntryManager.get(entriesRequest)
                     .map(EntriesResponse::getEntries)
                     .flatMap(taskEntries -> Observable.from(taskEntries)
                         .flatMap(entry -> taskManager.get(entry.getTaskId())
@@ -83,6 +82,8 @@ public class StatsApi {
                 .flatMap(deviceId -> {
                     InputsRequest inputsOfDeviceRequest = new InputsRequest();
                     inputsOfDeviceRequest.setDevice(Optional.of(deviceId));
+                    inputsOfDeviceRequest.setOrderBy(Optional.of("ioPin"));
+                    inputsOfDeviceRequest.setOrderDirection(Optional.of("asc"));
                     return Observable.zip(Observable.just(deviceId),
                         inputManager.get(inputsOfDeviceRequest)
                             .flatMap(inputsResponse -> Observable.from(inputsResponse.getInputs())

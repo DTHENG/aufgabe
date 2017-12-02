@@ -13,6 +13,7 @@ import com.dtheng.aufgabe.input.dto.InputCreateRequest;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.task.dto.TaskCreateRequest;
+import com.dtheng.aufgabe.task.dto.TaskUpdateRequest;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.TaskEntryCreateRequest;
@@ -54,14 +55,9 @@ public class SyncApi {
                     return RequestUtil.getBody(req, Task.class);
                 })
                 .flatMap(task -> {
-                    if (task.getSyncedAt().isPresent()) {
-
-                        // TODO: need to modify the task here...
-
-                        throw new RuntimeException("Unimplemented");
-                    } else {
+                    if ( ! task.getSyncedAt().isPresent())
                         return taskManager.create(new TaskCreateRequest(task.getDescription(), Optional.of(task.getId()), Optional.of(task.getCreatedAt())));
-                    }
+                    return taskManager.update(task.getId(), new TaskUpdateRequest(Optional.of(task.getDescription()), task.getBonuslyMessage()));
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))

@@ -1,24 +1,18 @@
 package com.dtheng.aufgabe.task;
 
 import com.dtheng.aufgabe.exceptions.AufgabeException;
-import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.jooq.JooqService;
+import com.dtheng.aufgabe.task.dto.TaskUpdateRequest;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
 import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.Condition;
-import org.jooq.Record;
-import org.jooq.SortOrder;
-import org.jooq.Table;
+import org.jooq.*;
 import rx.Observable;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.jooq.impl.DSL.*;
 
@@ -30,24 +24,25 @@ class TaskDAO {
 
     private static final Table<Record> TABLE = table("task");
 
-    private JooqManager jooqManager;
+    private JooqService jooqService;
 
     @Inject
-    public TaskDAO(JooqManager jooqManager) {
-        this.jooqManager = jooqManager;
+    public TaskDAO(JooqService jooqService) {
+        this.jooqService = jooqService;
     }
 
     Observable<Task> createTask(Task task) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), task.getId())
                 .set(field("description"), task.getDescription())
+                .set(field("bonuslyMessage"), task.getBonuslyMessage())
                 .execute())
             .flatMap(Void -> getTask(task.getId()));
     }
 
     Observable<Task> getTask(String id) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
                 .where(field("id").eq(id))
@@ -64,7 +59,7 @@ class TaskDAO {
     }
 
     Observable<TasksResponse> getTasks(TasksRequest request) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 List<Condition> where = new ArrayList<>();
                 if (request.isOnlyShowNeedSync())
@@ -92,7 +87,7 @@ class TaskDAO {
     }
 
     Observable<Task> setUpdatedAt(String id, Date updatedAt) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("updatedAt"), updatedAt)
@@ -103,7 +98,7 @@ class TaskDAO {
     }
 
     Observable<Task> setSyncedAt(String id, Date syncedAt) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("syncedAt"), syncedAt)
@@ -111,6 +106,20 @@ class TaskDAO {
                     .execute();
                 return getTask(id);
             });
+    }
+
+    Observable<Void> update(String id, TaskUpdateRequest request) {
+        Map<Field, String> set = new HashMap<>();
+        if (request.getDescription().isPresent())
+            set.put(field("description"), request.getDescription().get());
+        if (request.getBonuslyMessage().isPresent())
+            set.put(field("bonuslyMessage"), request.getBonuslyMessage().get());
+        return jooqService.getConnection()
+            .doOnNext(connection -> connection.update(TABLE)
+                .set(set)
+                .where(field("id").eq(id))
+            .execute())
+            .ignoreElements().cast(Void.class);
     }
 
     private Observable<Task> toTask(Record record) {
@@ -121,6 +130,7 @@ class TaskDAO {
             oUpdatedAt = DateUtil.parse(record.getValue("updatedAt").toString());
         if (record.getValue("syncedAt") != null)
             oSyncedAt = DateUtil.parse(record.getValue("syncedAt").toString());
+        Optional<String> bonuslyMessage = record.getValue("bonuslyMessage") != null ? Optional.of(record.getValue("bonuslyMessage").toString()) : Optional.empty();
         return Observable.zip(oCreatedAt, oUpdatedAt.defaultIfEmpty(null), oSyncedAt.defaultIfEmpty(null),
             (createdAt, updatedAt, syncedAt) ->
                 new Task(
@@ -128,6 +138,7 @@ class TaskDAO {
                     createdAt,
                     record.getValue("description").toString(),
                     Optional.ofNullable(updatedAt),
-                    Optional.ofNullable(syncedAt)));
+                    Optional.ofNullable(syncedAt),
+                    bonuslyMessage));
     }
 }
