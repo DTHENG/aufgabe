@@ -31,7 +31,7 @@ public class DeviceTest {
     public void testGetDeviceId() throws Exception {
         deviceService.startUp().toBlocking().single();
         String deviceId = deviceService.getDeviceId().toBlocking().single();
-        log.info("deviceId: \"{}\"", deviceId);
+        log.debug("deviceId: \"{}\"", deviceId);
         Assert.assertTrue(deviceId.length() > 0);
     }
 }
