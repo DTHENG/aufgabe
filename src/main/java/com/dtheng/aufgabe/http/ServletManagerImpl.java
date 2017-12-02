@@ -37,7 +37,7 @@ public class ServletManagerImpl implements ServletManager {
                     server.start();
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.findAndRegisterModules();
-                    log.info("\n{}", objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metaData));
+                    log.info("Application running...\n{}", objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metaData));
                     server.join();
                     return Observable.empty();
                 } catch (Throwable throwable) {

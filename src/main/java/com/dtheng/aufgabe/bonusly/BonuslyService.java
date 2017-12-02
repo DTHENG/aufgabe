@@ -63,7 +63,7 @@ public class BonuslyService implements AufgabeService {
             .flatMap(config -> {
                 if ( ! config.isBonuslyEnabled()) {
                     if (config.getBonuslyAccessToken().isPresent())
-                        log.info("Bonusly Disabled... not sending \"{}\"", message);
+                        log.warn("Bonusly Disabled... not sending \"{}\"", message);
                     return Observable.empty();
                 }
                 if ( ! config.getBonuslyAccessToken().isPresent() || ! config.getBonuslyApiEndpoint().isPresent())

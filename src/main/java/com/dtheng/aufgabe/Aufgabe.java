@@ -94,14 +94,7 @@ public class Aufgabe {
 
                     startUpMetaData.put("port", config.getHttpPort());
 
-                    return Observable.concat(Arrays.asList(
-
-                        startServices()
-
-                        //,
-                    //    syncService.start()
-                        ))
-
+                    return startServices()
                         .reduce(startUpMetaData, (aggregateMetaDta, newMetaData) -> {
                             for (String key : newMetaData.keySet())
                                 aggregateMetaDta.put(key, newMetaData.get(key));
@@ -130,7 +123,6 @@ public class Aufgabe {
                     return -1;
                 })
                 .flatMap(Observable::from)
-                .doOnNext(c -> log.info("{}", c.getClass().getCanonicalName()))
                 .flatMap(AufgabeService::startUp)
                 .reduce(new HashMap<String, Object>(), (aggregateMetaDta, newMetaData) -> {
                     for (String key : newMetaData.keySet())
