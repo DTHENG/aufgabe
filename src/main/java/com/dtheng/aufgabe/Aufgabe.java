@@ -66,7 +66,11 @@ public class Aufgabe {
         Observable<Void> start(Optional<String> customConfigFileName) {
             Map<String, Object> startUpMetaData = new HashMap<>();
             return fileManager.read("loghead.txt")
-                .doOnNext(log::info)
+                .map(loghead -> {
+                    String version = Aufgabe.class.getPackage().getImplementationVersion() == null ? "1.* (development)" : Aufgabe.class.getPackage().getImplementationVersion();
+                    return loghead + "\n\n    Aufgabe v"+ version +"\n";
+                })
+                .doOnNext(loghead -> log.info(loghead))
                 .flatMap(Void -> configManager.load(customConfigFileName))
                 .doOnNext(configFileName -> startUpMetaData.put("config", configFileName))
                 .flatMap(Void -> configManager.getConfig())
