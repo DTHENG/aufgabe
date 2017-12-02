@@ -11,6 +11,8 @@ import com.pi4j.io.gpio.GpioFactory;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -30,15 +32,25 @@ public class GpioService implements AufgabeService {
     }
 
     @Override
-    public Observable<Void> startUp() {
+    public Observable<Map<String, Object>> startUp() {
         return configManager.getConfig()
             .map(AufgabeConfig::getDeviceType)
-            .filter(deviceType -> deviceType == AufgabeDeviceType.RASPBERRY_PI)
-            .doOnNext(Void -> controller = Optional.of(GpioFactory.getInstance()))
-            .ignoreElements().cast(Void.class);
+            .map(deviceType -> deviceType == AufgabeDeviceType.RASPBERRY_PI)
+            .map(isRaspberryPi -> {
+                if (isRaspberryPi)
+                    controller = Optional.of(GpioFactory.getInstance());
+                Map<String, Object> metaData = new HashMap<>();
+                metaData.put("gpioEnabled", isRaspberryPi);
+                return metaData;
+            });
     }
 
-    public Observable<GpioController> getController() {
+    @Override
+    public long order() {
+        return 1507076400;
+    }
+
+    Observable<GpioController> getController() {
         if (controller.isPresent())
             return Observable.just(controller.get());
         return Observable.empty();

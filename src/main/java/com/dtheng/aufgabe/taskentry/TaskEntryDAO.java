@@ -1,6 +1,6 @@
 package com.dtheng.aufgabe.taskentry;
 
-import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
 import com.dtheng.aufgabe.taskentry.dto.EntriesResponse;
@@ -14,7 +14,6 @@ import org.jooq.SortOrder;
 import org.jooq.Table;
 import rx.Observable;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,15 +30,15 @@ class TaskEntryDAO {
 
     private static final Table<Record> TABLE = table("task_entry");
 
-    private JooqManager jooqManager;
+    private JooqService jooqService;
 
     @Inject
-    public TaskEntryDAO(JooqManager jooqManager) {
-        this.jooqManager = jooqManager;
+    public TaskEntryDAO(JooqService jooqService) {
+        this.jooqService = jooqService;
     }
 
     Observable<TaskEntry> createTaskEntry(TaskEntry entry) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), entry.getId())
                 .set(field("createdAt"), entry.getCreatedAt())
@@ -50,7 +49,7 @@ class TaskEntryDAO {
     }
 
     Observable<TaskEntry> getTaskEntry(String id) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
                 .where(field("id").eq(id))
@@ -67,7 +66,7 @@ class TaskEntryDAO {
     }
 
     Observable<EntriesResponse> getEntries(EntriesRequest request) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 List<Condition> where = new ArrayList<>();
 
@@ -100,7 +99,7 @@ class TaskEntryDAO {
     }
 
     Observable<TaskEntry> setUpdatedAt(String id, Date updatedAt) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("updatedAt"), updatedAt)
@@ -111,7 +110,7 @@ class TaskEntryDAO {
     }
 
     Observable<TaskEntry> setSyncedAt(String id, Date syncedAt) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> {
                 connection.update(TABLE)
                     .set(field("syncedAt"), syncedAt)

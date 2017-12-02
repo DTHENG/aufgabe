@@ -3,7 +3,7 @@ package com.dtheng.aufgabe.config;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
-import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.DeviceService;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
@@ -27,13 +27,13 @@ public class ConfigApi {
     public static class InputConfig extends AufgabeServlet {
 
         private InputManager inputManager;
-        private DeviceManager deviceManager;
+        private DeviceService deviceService;
         private TaskManager taskManager;
 
         @Inject
-        public InputConfig(InputManager inputManager, DeviceManager deviceManager, TaskManager taskManager) {
+        public InputConfig(InputManager inputManager, DeviceService deviceService, TaskManager taskManager) {
             this.inputManager = inputManager;
-            this.deviceManager = deviceManager;
+            this.deviceService = deviceService;
             this.taskManager = taskManager;
         }
 
@@ -47,7 +47,7 @@ public class ConfigApi {
         }
 
         private Observable<String> getTasks() {
-            return deviceManager.getDeviceId()
+            return deviceService.getDeviceId()
                 .flatMap(deviceId -> {
                     InputsRequest inputsRequest = new InputsRequest();
                     inputsRequest.setLimit(100);

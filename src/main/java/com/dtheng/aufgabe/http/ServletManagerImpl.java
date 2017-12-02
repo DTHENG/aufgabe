@@ -1,6 +1,7 @@
 package com.dtheng.aufgabe.http;
 
 import com.dtheng.aufgabe.AufgabeContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.mortbay.jetty.Server;
@@ -25,7 +26,7 @@ public class ServletManagerImpl implements ServletManager {
     }
 
     @Override
-    public Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config) {
+    public Observable<Void> start(Integer port, Map<String, Class<? extends Servlet>> config, Map<String, Object> metaData) {
         Server server = new Server(port);
         Context jettyContext = new Context();
         return configureServlets(config, jettyContext)
@@ -34,7 +35,9 @@ public class ServletManagerImpl implements ServletManager {
                 server.setHandler(jettyContext);
                 try {
                     server.start();
-                    log.info("RUNNING ON PORT {}", port);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.findAndRegisterModules();
+                    log.info("\n{}", objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(metaData));
                     server.join();
                     return Observable.empty();
                 } catch (Throwable throwable) {

@@ -1,7 +1,7 @@
 package com.dtheng.aufgabe.sync;
 
 import com.dtheng.aufgabe.exceptions.AufgabeException;
-import com.dtheng.aufgabe.jooq.JooqManager;
+import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.sync.model.SyncEntry;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,6 @@ import rx.Observable;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Optional;
 
 import static org.jooq.impl.DSL.field;
@@ -25,15 +24,15 @@ public class SyncDAO {
 
     private static final Table<Record> TABLE = table("sync_entry");
 
-    private JooqManager jooqManager;
+    private JooqService jooqService;
 
     @Inject
-    public SyncDAO(JooqManager jooqManager) {
-        this.jooqManager = jooqManager;
+    public SyncDAO(JooqService jooqService) {
+        this.jooqService = jooqService;
     }
 
     Observable<SyncEntry> createEntry(SyncEntry entry) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), entry.getId())
                 .execute())
@@ -41,7 +40,7 @@ public class SyncDAO {
     }
 
     Observable<SyncEntry> getEntry(String id) {
-        return jooqManager.getConnection()
+        return jooqService.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
                 .where(field("id").eq(id))

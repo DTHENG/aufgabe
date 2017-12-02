@@ -11,6 +11,8 @@ import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
+import java.util.Map;
+
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
@@ -33,7 +35,7 @@ public class TaskService implements AufgabeService {
     }
 
     @Override
-    public Observable<Void> startUp() {
+    public Observable<Map<String, Object>> startUp() {
         return configManager.getConfig()
             .flatMap(config -> {
                 switch (config.getDeviceType()) {
@@ -46,6 +48,11 @@ public class TaskService implements AufgabeService {
                         return Observable.empty();
                 }
             });
+    }
+
+    @Override
+    public long order() {
+        return 1512028800;
     }
 
     private Observable<Void> onTaskEntryCreated(String id) {

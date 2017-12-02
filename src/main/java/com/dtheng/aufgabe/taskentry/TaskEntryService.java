@@ -12,6 +12,7 @@ import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -23,23 +24,24 @@ public class TaskEntryService implements AufgabeService {
 
     private EventManager eventManager;
     private AufgabeContext aufgabeContext;
-    private ConfigManager configManager;
-    private TaskEntryManager taskEntryManager;
 
     @Inject
-    public TaskEntryService(EventManager eventManager, AufgabeContext aufgabeContext, ConfigManager configManager, TaskEntryManager taskEntryManager) {
+    public TaskEntryService(EventManager eventManager, AufgabeContext aufgabeContext) {
         this.eventManager = eventManager;
         this.aufgabeContext = aufgabeContext;
-        this.configManager = configManager;
-        this.taskEntryManager = taskEntryManager;
     }
 
     @Override
-    public Observable<Void> startUp() {
+    public Observable<Map<String, Object>> startUp() {
         eventManager.getB3F_TactileSwitchInputPressed().addListener(aufgabeContext.getInjector().getInstance(Handlers.ButtonPressed.class));
         eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput().addListener(aufgabeContext.getInjector().getInstance(Handlers.IrSensorData.class));
 
         return Observable.empty();
+    }
+
+    @Override
+    public long order() {
+        return 1511683200;
     }
 
     private static class Handlers {

@@ -8,5 +8,6 @@
   "device_type": "MAC_OS",
   "sync_remote_ip": null,
   "bonusly_access_token": null,
-  "bonusly_api_endpoint": null
+  "bonusly_api_endpoint": null,
+  "bonusly_enabled": false
 }

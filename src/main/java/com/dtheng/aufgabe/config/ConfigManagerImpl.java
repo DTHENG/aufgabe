@@ -28,7 +28,7 @@ public class ConfigManagerImpl implements ConfigManager {
     }
 
     @Override
-    public Observable<Void> load(Optional<String> customConfigFileName) {
+    public Observable<String> load(Optional<String> customConfigFileName) {
         String filename = ! customConfigFileName.isPresent() ? "configuration-default.json" : customConfigFileName.get();
         return fileManager.read(filename)
             .flatMap(raw -> {
@@ -41,7 +41,7 @@ public class ConfigManagerImpl implements ConfigManager {
                 }
             })
             .doOnNext(configuration -> this.configuration = Optional.of(configuration))
-            .ignoreElements().cast(Void.class);
+            .map(Void -> filename);
     }
 
     @Override

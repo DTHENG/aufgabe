@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.sync;
 
+import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
@@ -23,13 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 import retrofit.RetrofitError;
 import rx.Observable;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class SyncService {
+public class SyncService implements AufgabeService {
 
     private static final int CRON_INTERVAL_IN_SECONDS = 15;
 
@@ -49,11 +51,12 @@ public class SyncService {
         this.configManager = configManager;
     }
 
-    public Observable<Void> start() {
+    @Override
+    public Observable<Map<String, Object>> startUp() {
         return configManager.getConfig()
             .map(AufgabeConfig::getDeviceType)
             .filter(deviceType -> deviceType == AufgabeDeviceType.RASPBERRY_PI)
-            .doOnNext(raspberryPi -> {
+            .flatMap(raspberryPi -> {
 
                 /** Task */
 
@@ -139,8 +142,14 @@ public class SyncService {
                         return Observable.error(throwable);
                     })
                     .subscribe(Void -> {}, error -> log.error(error.toString()));
-            })
-            .ignoreElements().cast(Void.class);
+
+                return Observable.empty();
+            });
+    }
+
+    @Override
+    public long order() {
+        return 1512237076;
     }
 
     private Observable<Void> taskSyncCron() {
