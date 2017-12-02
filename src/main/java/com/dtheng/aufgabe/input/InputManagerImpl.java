@@ -54,6 +54,7 @@ public class InputManagerImpl implements InputManager {
                     switch (deviceType) {
                         case RASPBERRY_PI:
                             return checkIfIoPinIsFreeThenCreate(deviceId, request);
+                        case MAC_OS:
                         case EC2_INSTANCE:
                             try {
                                 Class rawClass = Class.forName(request.getHandler());
@@ -61,10 +62,19 @@ public class InputManagerImpl implements InputManager {
                                     if (! (rawClass.newInstance() instanceof InputHandler))
                                         return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
                                     Class<? extends InputHandler> handler = (Class<? extends InputHandler>) rawClass;
-                                    return inputDAO.createInput(new Input(request.getId().get(), request.getCreatedAt().get(), request.getIoPin(), request.getTaskId(), request.getDevice().get(), Optional.empty(), handler, Optional.empty(), Optional.empty()));
+                                    return inputDAO.createInput(
+                                        new Input(
+                                            request.getId().orElseGet(() -> "input-"+ new RandomString(8).nextString()),
+                                            request.getCreatedAt().orElseGet(Date::new),
+                                            request.getIoPin(),
+                                            request.getTaskId(),
+                                            request.getDevice().orElseGet(() -> deviceId),
+                                            Optional.empty(),
+                                            handler,
+                                            Optional.empty(),
+                                            Optional.empty()));
                                 } catch (Exception e) {
-                                    log.error("Got error attempting .newInstance() on class {}", rawClass);
-                                    return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
+                                    return Observable.error(e);
                                 }
                             } catch (ClassNotFoundException cnfe) {
                                 return Observable.error(new AufgabeException("\""+ request.getHandler() +"\" is not a valid \"handler\""));
@@ -86,11 +96,16 @@ public class InputManagerImpl implements InputManager {
         return configManager.getConfig()
             .map(AufgabeConfig::getDeviceType)
             .flatMap(deviceType -> {
-                if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
-                    return Observable.error(new UnsupportedException());
-                return get(id);
+                switch (deviceType) {
+                    case MAC_OS:
+                    case RASPBERRY_PI:
+                        return get(id);
+                    default:
+                        return Observable.error(new UnsupportedException());
+                }
             })
             .flatMap(input -> inputDAO.removeInput(id)
+                .defaultIfEmpty(null)
                 .doOnNext(Void -> input.setRemovedAt(Optional.of(new Date())))
                 .map(Void -> input));
     }

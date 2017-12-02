@@ -1,6 +1,7 @@
 package com.dtheng.aufgabe.input;
 
 import com.dtheng.aufgabe.input.dto.*;
+import com.dtheng.aufgabe.input.exception.InputNotFoundException;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.jooq.JooqService;
@@ -49,14 +50,13 @@ class InputDAO {
         return jooqService.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
-                .where(field("id").eq(id))
+                .where(field("id").eq(id)
+                    .and(field("removedAt").isNull()))
                 .fetch()))
             .defaultIfEmpty(null)
             .map(record -> {
-                if (record == null) {
-                    log.error("Input not found, id: {}", id);
-                    throw new AufgabeException("Input not found");
-                }
+                if (record == null)
+                    throw new InputNotFoundException(id);
                 return record;
             })
             .flatMap(this::toInput);

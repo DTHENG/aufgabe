@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
 import java.io.*;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -14,8 +15,10 @@ public class FileManagerImpl implements FileManager {
 
     @Override
     public Observable<String> read(String filename) {
-        InputStream in = getClass().getResourceAsStream("/"+ filename);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        Optional<InputStream> in = Optional.ofNullable(getClass().getResourceAsStream("/"+ filename));
+        if ( ! in.isPresent())
+            return Observable.error(new FileNotFoundException(filename));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in.get()));
         return Observable.just(reader.lines().collect(Collectors.joining("\n")));
     }
 }
