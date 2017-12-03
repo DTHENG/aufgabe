@@ -36,7 +36,7 @@ class TaskDAO {
             .doOnNext(connection -> connection.insertInto(TABLE)
                 .set(field("id"), task.getId())
                 .set(field("description"), task.getDescription())
-                .set(field("bonuslyMessage"), task.getBonuslyMessage())
+                .set(field("bonuslyMessage"), task.getBonuslyMessage().orElseGet(() -> null))
                 .execute())
             .flatMap(Void -> getTask(task.getId()));
     }

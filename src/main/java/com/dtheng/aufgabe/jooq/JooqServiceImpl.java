@@ -48,9 +48,7 @@ public class JooqServiceImpl implements JooqService, AufgabeService {
     @Override
     public Observable<DSLContext> getConnection() {
         if (configuration == null)
-            return connect()
-                .defaultIfEmpty(null)
-                .map(Void -> DSL.using(configuration));
+            return Observable.error(new RuntimeException("JooqService configuration is null!"));
         return Observable.just(DSL.using(configuration));
     }
 

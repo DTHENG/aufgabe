@@ -50,17 +50,13 @@ public class Aufgabe {
         private ConfigManager configManager;
         private AufgabeContext aufgabeContext;
         private FileManager fileManager;
-        private JooqService jooqService;
-        private SyncService syncService;
 
         @Inject
-        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager, JooqService jooqService, SyncService syncService) {
+        public StartUp(ServletManager servletManager, ConfigManager configManager, AufgabeContext aufgabeContext, FileManager fileManager) {
             this.servletManager = servletManager;
             this.configManager = configManager;
             this.aufgabeContext = aufgabeContext;
             this.fileManager = fileManager;
-            this.jooqService = jooqService;
-            this.syncService = syncService;
         }
 
         Observable<Void> start(Optional<String> customConfigFileName) {

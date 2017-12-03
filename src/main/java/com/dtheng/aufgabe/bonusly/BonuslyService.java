@@ -70,15 +70,11 @@ public class BonuslyService implements AufgabeService {
                     return Observable.empty();
                 return bonuslyApi.create("Bearer "+ config.getBonuslyAccessToken().get(), new BonuslyRequest(message));
             })
-            .onErrorResumeNext(throwable -> {
-                if (throwable instanceof RetrofitError) {
-                    RetrofitError retrofitError = (RetrofitError) throwable;
-                    BonuslyResponse response = (BonuslyResponse) retrofitError.getBodyAs(BonuslyResponse.class);
-                    log.error(response.getMessage());
-                    return Observable.empty();
-                }
-                return Observable.error(throwable);
-            })
+            .ignoreElements().cast(Void.class);
+    }
+
+    public Observable<Void> test() {
+        return bonuslyApi.test()
             .ignoreElements().cast(Void.class);
     }
 }
