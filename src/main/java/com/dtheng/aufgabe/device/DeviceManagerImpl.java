@@ -62,8 +62,8 @@ public class DeviceManagerImpl implements DeviceManager {
                         case MAC_OS:
                             return deviceDAO.createDevice(
                                 new Device(
-                                    request.getId(),
-                                    request.getCreatedAt().orElseGet(() -> new Date()),
+                                    request.getId().orElseGet(() -> deviceId),
+                                    request.getCreatedAt().orElseGet(Date::new),
                                     request.getName(),
                                     request.getDescription(),
                                     Optional.empty(),

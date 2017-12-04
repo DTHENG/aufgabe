@@ -1,5 +1,9 @@
 package com.dtheng.aufgabe.input;
 
+import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
+import com.dtheng.aufgabe.device.exception.DeviceNotFoundException;
+import com.dtheng.aufgabe.device.model.Device;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.dto.*;
 import com.dtheng.aufgabe.input.event.InputCreatedEvent;
@@ -31,16 +35,18 @@ public class InputManagerImpl implements InputManager {
     private SyncManager syncManager;
     private EventManager eventManager;
     private SecurityManager securityManager;
+    private DeviceManager deviceManager;
 
     @Inject
     public InputManagerImpl(InputDAO inputDAO, DeviceService deviceService, ConfigManager configManager,
-                            SyncManager syncManager, EventManager eventManager, SecurityManager securityManager) {
+                            SyncManager syncManager, EventManager eventManager, SecurityManager securityManager, DeviceManager deviceManager) {
         this.inputDAO = inputDAO;
         this.deviceService = deviceService;
         this.configManager = configManager;
         this.syncManager = syncManager;
         this.eventManager = eventManager;
         this.securityManager = securityManager;
+        this.deviceManager = deviceManager;
     }
 
     @Override
@@ -50,12 +56,12 @@ public class InputManagerImpl implements InputManager {
 
     @Override
     public Observable<Input> create(InputCreateRequest request) {
-        return deviceService.getDeviceId()
-            .flatMap(deviceId -> configManager.getConfig().map(AufgabeConfig::getDeviceType)
+        return getOrCreateDevice()
+            .flatMap(device -> configManager.getConfig().map(AufgabeConfig::getDeviceType)
                 .flatMap(deviceType -> {
                     switch (deviceType) {
                         case RASPBERRY_PI:
-                            return checkIfIoPinIsFreeThenCreate(deviceId, request);
+                            return checkIfIoPinIsFreeThenCreate(device.getId(), request);
                         case MAC_OS:
                         case EC2_INSTANCE:
                             try {
@@ -70,7 +76,7 @@ public class InputManagerImpl implements InputManager {
                                             request.getCreatedAt().orElseGet(Date::new),
                                             request.getIoPin(),
                                             request.getTaskId(),
-                                            request.getDevice().orElseGet(() -> deviceId),
+                                            request.getDevice().orElseGet(device::getId),
                                             Optional.empty(),
                                             handler,
                                             Optional.empty(),
@@ -125,6 +131,16 @@ public class InputManagerImpl implements InputManager {
             .flatMap(o -> o)
             .defaultIfEmpty(null)
             .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date()));
+    }
+
+    private Observable<Device> getOrCreateDevice() {
+        return deviceService.getDeviceId()
+            .flatMap(deviceManager::get)
+            .onErrorResumeNext(error -> {
+                if (error instanceof DeviceNotFoundException)
+                    return deviceManager.create(new DeviceCreateRequest());
+                return Observable.error(error);
+            });
     }
 
     private Observable<Input> checkIfIoPinIsFreeThenCreate(String deviceId, InputCreateRequest request) {

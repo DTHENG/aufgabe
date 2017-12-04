@@ -4,6 +4,11 @@ import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
+import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
+import com.dtheng.aufgabe.device.dto.DevicesRequest;
+import com.dtheng.aufgabe.device.dto.DevicesResponse;
+import com.dtheng.aufgabe.device.event.DeviceCreatedEvent;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
@@ -40,15 +45,17 @@ public class SyncService implements AufgabeService {
     private TaskManager taskManager;
     private TaskEntryManager taskEntryManager;
     private ConfigManager configManager;
+    private DeviceManager deviceManager;
 
     @Inject
     public SyncService(EventManager eventManager, InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager,
-                       ConfigManager configManager) {
+                       ConfigManager configManager, DeviceManager deviceManager) {
         this.eventManager = eventManager;
         this.inputManager = inputManager;
         this.taskManager = taskManager;
         this.taskEntryManager = taskEntryManager;
         this.configManager = configManager;
+        this.deviceManager = deviceManager;
     }
 
     @Override
@@ -143,6 +150,29 @@ public class SyncService implements AufgabeService {
                     })
                     .subscribe(Void -> {}, error -> log.error(error.toString()));
 
+                /** Device */
+
+                eventManager.getDeviceCreated()
+                    .addListener((DeviceCreatedEvent event) -> deviceManager.get(event.getId())
+                        .flatMap(device -> canSync()
+                            .filter(canSync -> canSync)
+                            .flatMap(Void -> deviceManager.performSync(device)))
+                        .onErrorResumeNext(throwable -> {
+                            if (throwable instanceof RetrofitError)
+                                return Observable.empty();
+                            return Observable.error(throwable);
+                        })
+                        .subscribe(Void -> {}, error -> log.error(error.toString())));
+
+                Observable.interval(CRON_INTERVAL_IN_SECONDS, TimeUnit.SECONDS)
+                    .flatMap(Void -> deviceSyncCron())
+                    .onErrorResumeNext(throwable -> {
+                        if (throwable instanceof RetrofitError)
+                            return Observable.empty();
+                        return Observable.error(throwable);
+                    })
+                    .subscribe(Void -> {}, error -> log.error(error.toString()));
+
                 return Observable.empty();
             });
     }
@@ -153,46 +183,52 @@ public class SyncService implements AufgabeService {
     }
 
     private Observable<Void> taskSyncCron() {
+        TasksRequest tasksRequest = new TasksRequest();
+        tasksRequest.setOnlyShowNeedSync(true);
         return canSync()
             .filter(canSync -> canSync)
-            .flatMap(Void -> {
-                TasksRequest tasksRequest = new TasksRequest();
-                tasksRequest.setOnlyShowNeedSync(true);
-                return taskManager.get(tasksRequest)
-                    .map(AggregateTasksResponse::getTasks)
-                    .flatMap(tasks -> Observable.from(tasks)
-                        .map(AggregateTask::getTask)
-                        .flatMap(taskManager::performSync)
-                        .ignoreElements().cast(Void.class));
-            });
+            .flatMap(Void -> taskManager.get(tasksRequest))
+            .map(AggregateTasksResponse::getTasks)
+            .flatMap(Observable::from)
+            .map(AggregateTask::getTask)
+            .flatMap(taskManager::performSync)
+            .ignoreElements().cast(Void.class);
     }
 
     private Observable<Void> inputSyncCron() {
+        InputsRequest inputsRequest = new InputsRequest();
+        inputsRequest.setOnlyShowNeedSync(true);
         return canSync()
             .filter(canSync -> canSync)
-            .flatMap(Void -> {
-                InputsRequest inputsRequest = new InputsRequest();
-                inputsRequest.setOnlyShowNeedSync(true);
-                return inputManager.get(inputsRequest)
-                    .map(InputsResponse::getInputs)
-                    .flatMap(inputs -> Observable.from(inputs)
-                        .flatMap(inputManager::performSync))
-                    .ignoreElements().cast(Void.class);
-            });
+            .flatMap(Void -> inputManager.get(inputsRequest))
+            .map(InputsResponse::getInputs)
+            .flatMap(Observable::from)
+            .flatMap(inputManager::performSync)
+            .ignoreElements().cast(Void.class);
     }
 
     private Observable<Void> taskEntrySyncCron() {
+        EntriesRequest entriesRequest = new EntriesRequest();
+        entriesRequest.setOnlyShowNeedSync(true);
         return canSync()
             .filter(canSync -> canSync)
-            .flatMap(Void -> {
-                EntriesRequest entriesRequest = new EntriesRequest();
-                entriesRequest.setOnlyShowNeedSync(true);
-                return taskEntryManager.get(entriesRequest)
-                    .map(EntriesResponse::getEntries)
-                    .flatMap(entries -> Observable.from(entries)
-                        .flatMap(taskEntryManager::performSync)
-                        .ignoreElements().cast(Void.class));
-            });
+            .flatMap(Void -> taskEntryManager.get(entriesRequest))
+            .map(EntriesResponse::getEntries)
+            .flatMap(Observable::from)
+            .flatMap(taskEntryManager::performSync)
+            .ignoreElements().cast(Void.class);
+    }
+
+    private Observable<Void> deviceSyncCron() {
+        DevicesRequest devicesRequest = new DevicesRequest();
+        devicesRequest.setOnlyShowNeedSync(true);
+        return canSync()
+            .filter(canSync -> canSync)
+            .flatMap(Void -> deviceManager.get(devicesRequest))
+            .map(DevicesResponse::getDevices)
+            .flatMap(Observable::from)
+            .flatMap(deviceManager::performSync)
+            .ignoreElements().cast(Void.class);
     }
 
     private Observable<Boolean> canSync() {

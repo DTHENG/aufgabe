@@ -27,7 +27,7 @@ import static org.jooq.impl.DSL.table;
 @Slf4j
 public class DeviceDAO {
 
-    private static final Table<Record> TABLE = table("input");
+    private static final Table<Record> TABLE = table("device");
 
     private JooqService jooqService;
 
@@ -51,8 +51,7 @@ public class DeviceDAO {
         return jooqService.getConnection()
             .flatMap(connection -> Observable.from(connection.select()
                 .from(TABLE)
-                .where(field("id").eq(id)
-                    .and(field("removedAt").isNull()))
+                .where(field("id").eq(id))
                 .fetch()))
             .defaultIfEmpty(null)
             .map(record -> {

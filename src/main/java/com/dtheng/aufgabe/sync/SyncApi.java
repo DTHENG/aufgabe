@@ -176,7 +176,7 @@ public class SyncApi {
 
                         throw new RuntimeException("Unimplemented");
                     } else {
-                        return deviceManager.create(new DeviceCreateRequest(device.getId(), Optional.of(device.getCreatedAt()), device.getName(), device.getDescription()));
+                        return deviceManager.create(new DeviceCreateRequest(Optional.of(device.getId()), Optional.of(device.getCreatedAt()), device.getName(), device.getDescription()));
                     }
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))

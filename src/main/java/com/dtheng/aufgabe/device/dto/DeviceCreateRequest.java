@@ -15,7 +15,7 @@ import java.util.Optional;
 @NoArgsConstructor
 public class DeviceCreateRequest {
 
-    private String id;
+    private Optional<String> id = Optional.empty();
     private Optional<Date> createdAt = Optional.empty();
     private Optional<String> name = Optional.empty();
     private Optional<String> description = Optional.empty();
