@@ -51,7 +51,7 @@ public class ConfigApi {
                 .flatMap(deviceId -> {
                     InputsRequest inputsRequest = new InputsRequest();
                     inputsRequest.setLimit(100);
-                    inputsRequest.setDevice(Optional.of(deviceId));
+                    inputsRequest.setDeviceId(Optional.of(deviceId));
                     inputsRequest.setOrderBy(Optional.of("ioPin"));
                     inputsRequest.setOrderDirection(Optional.of("asc"));
                     return inputManager.get(inputsRequest);

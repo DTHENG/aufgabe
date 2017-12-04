@@ -1,6 +1,10 @@
 package com.dtheng.aufgabe.stats;
 
 import com.dtheng.aufgabe.AufgabeContext;
+import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.dto.DevicesRequest;
+import com.dtheng.aufgabe.device.dto.DevicesResponse;
+import com.dtheng.aufgabe.device.model.Device;
 import com.dtheng.aufgabe.input.InputHandler;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
@@ -10,7 +14,6 @@ import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.dtheng.aufgabe.input.model.Input;
-import com.dtheng.aufgabe.stats.dto.AggregateDevice;
 import com.dtheng.aufgabe.stats.dto.StatsDefaultResponse;
 import com.dtheng.aufgabe.task.TaskManager;
 import com.dtheng.aufgabe.task.dto.AggregateTask;
@@ -48,14 +51,16 @@ public class StatsApi {
         private TaskEntryManager taskEntryManager;
         private ConfigManager configManager;
         private AufgabeContext aufgabeContext;
+        private DeviceManager deviceManager;
 
         @Inject
-        public Default(InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager, AufgabeContext aufgabeContext) {
+        public Default(InputManager inputManager, TaskManager taskManager, TaskEntryManager taskEntryManager, ConfigManager configManager, AufgabeContext aufgabeContext, DeviceManager deviceManager) {
             this.inputManager = inputManager;
             this.taskManager = taskManager;
             this.taskEntryManager = taskEntryManager;
             this.configManager = configManager;
             this.aufgabeContext = aufgabeContext;
+            this.deviceManager = deviceManager;
         }
 
         @Override
@@ -77,23 +82,9 @@ public class StatsApi {
                 .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
 
-        private Observable<AggregateDevice> buildDevicesList() {
-            return inputManager.getDevices()
-                .flatMap(deviceId -> {
-                    InputsRequest inputsOfDeviceRequest = new InputsRequest();
-                    inputsOfDeviceRequest.setDevice(Optional.of(deviceId));
-                    inputsOfDeviceRequest.setOrderBy(Optional.of("ioPin"));
-                    inputsOfDeviceRequest.setOrderDirection(Optional.of("asc"));
-                    return Observable.zip(Observable.just(deviceId),
-                        inputManager.get(inputsOfDeviceRequest)
-                            .flatMap(inputsResponse -> Observable.from(inputsResponse.getInputs())
-                                .map(Input::getTaskId)
-                                .flatMap(taskManager::get)
-                                .map(AggregateTask::getTask)
-                                .map(Task::getDescription))
-                            .toList(),
-                        AggregateDevice::new);
-                });
+        private Observable<Device> buildDevicesList() {
+            return deviceManager.get(new DevicesRequest())
+                .flatMap(devicesResponse -> Observable.from(devicesResponse.getDevices()));
         }
 
         private Observable<Map<String, Integer>> buildTotalsMap() {
@@ -101,7 +92,7 @@ public class StatsApi {
                 taskEntryManager.get(new EntriesRequest()).map(EntriesResponse::getTotal),
                 taskManager.get(new TasksRequest()).map(AggregateTasksResponse::getTotal),
                 inputManager.get(new InputsRequest()).map(InputsResponse::getTotal),
-                inputManager.getDevices().count(),
+                deviceManager.get(new DevicesRequest()).map(DevicesResponse::getTotal),
                 (totalEntries, totalTasks, totalInputs, totalDevices) -> {
                     Map<String, Integer> totals = new HashMap<>();
                     totals.put("entry", totalEntries);

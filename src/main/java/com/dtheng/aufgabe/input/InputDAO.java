@@ -79,8 +79,8 @@ class InputDAO {
                 where.add(field("removedAt").isNull());
                 if (request.getTaskId().isPresent())
                     where.add(field("taskId").eq(request.getTaskId().get()));
-                if (request.getDevice().isPresent())
-                    where.add(field("deviceId").eq(request.getDevice().get()));
+                if (request.getDeviceId().isPresent())
+                    where.add(field("deviceId").eq(request.getDeviceId().get()));
                 if (request.getIoPin().isPresent())
                     where.add((field("ioPin").eq(request.getIoPin().get())));
                 if (request.getHandler().isPresent())
@@ -133,16 +133,6 @@ class InputDAO {
                     .execute();
                 return getInput(id);
             });
-    }
-
-    Observable<String> getDevices() {
-        return jooqService.getConnection()
-            .flatMap(connection -> Observable.from(
-                connection
-                    .selectDistinct(field("deviceId"))
-                    .from(TABLE)
-                    .fetch()))
-            .map(result -> result.getValue("deviceId").toString());
     }
 
     private Observable<Class<? extends InputHandler>> getHandler(String className) {

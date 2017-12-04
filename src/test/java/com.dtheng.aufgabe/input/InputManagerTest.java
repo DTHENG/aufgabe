@@ -116,18 +116,4 @@ public class InputManagerTest {
         inputManager.remove(input.getId()).toBlocking().single();
         inputManager.get(input.getId()).toBlocking().single();
     }
-
-    @Test
-    public void testGetDevices() throws Exception {
-        InputCreateRequest createRequest = new InputCreateRequest();
-        createRequest.setHandler(B3F_TactileSwitchInputHandler.class.getCanonicalName());
-        createRequest.setIoPin("notAnIoPin");
-        createRequest.setTaskId(testTask.getId());
-        Input input = inputManager.create(createRequest).toBlocking().single();
-        log.debug("input: {}", input);
-        List<String> devices = inputManager.getDevices().toList().toBlocking().single();
-        log.debug("devices: {}", devices);
-        Assert.assertTrue(devices.size() == 1);
-        Assert.assertEquals(devices.get(0), deviceService.getDeviceId().toBlocking().single());
-    }
 }

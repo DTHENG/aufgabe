@@ -127,14 +127,9 @@ public class InputManagerImpl implements InputManager {
             .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date()));
     }
 
-    @Override
-    public Observable<String> getDevices() {
-        return inputDAO.getDevices();
-    }
-
     private Observable<Input> checkIfIoPinIsFreeThenCreate(String deviceId, InputCreateRequest request) {
         InputsRequest existingInputRequest = new InputsRequest();
-        existingInputRequest.setDevice(Optional.of(deviceId));
+        existingInputRequest.setDeviceId(Optional.of(deviceId));
         existingInputRequest.setIoPin(Optional.of(request.getIoPin()));
         return inputDAO.getInputs(existingInputRequest)
             .map(InputsResponse::getTotal)
