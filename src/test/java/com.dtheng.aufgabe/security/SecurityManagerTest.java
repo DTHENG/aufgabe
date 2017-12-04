@@ -32,7 +32,6 @@ public class SecurityManagerTest {
 
     @Test
     public void testSignatureCalc() throws Exception {
-        String privateKey = configManager.getConfig().map(AufgabeConfig::getPrivateKey).toBlocking().single();
         String signature = securityManager.getSignature("{}").toBlocking().single();
         log.info("signature: \"{}\"", signature);
         Assert.assertEquals(signature, "16cf2d6de750394e1a6fe95eae60783301b8285ffc51da31da9be96111a6d0fc");

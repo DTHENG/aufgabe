@@ -5,8 +5,8 @@ import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
+import com.dtheng.aufgabe.http.HttpManager;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
-import com.dtheng.aufgabe.http.util.RequestUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputCreateRequest;
@@ -38,11 +38,13 @@ public class SyncApi {
 
         private TaskManager taskManager;
         private ConfigManager configManager;
+        private HttpManager httpManager;
 
         @Inject
-        public SyncTask(TaskManager taskManager, ConfigManager configManager) {
+        public SyncTask(TaskManager taskManager, ConfigManager configManager, HttpManager httpManager) {
             this.taskManager = taskManager;
             this.configManager = configManager;
+            this.httpManager = httpManager;
         }
 
         @Override
@@ -52,7 +54,7 @@ public class SyncApi {
                 .flatMap(deviceType -> {
                     if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
                         return Observable.error(new UnsupportedException());
-                    return RequestUtil.getBody(req, Task.class);
+                    return httpManager.getBody(req, Task.class);
                 })
                 .flatMap(task -> {
                     if ( ! task.getSyncedAt().isPresent())
@@ -61,11 +63,7 @@ public class SyncApi {
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 
@@ -73,11 +71,13 @@ public class SyncApi {
 
         private TaskEntryManager taskEntryManager;
         private ConfigManager configManager;
+        private HttpManager httpManager;
 
         @Inject
-        public SyncEntry(TaskEntryManager taskEntryManager, ConfigManager configManager) {
+        public SyncEntry(TaskEntryManager taskEntryManager, ConfigManager configManager, HttpManager httpManager) {
             this.taskEntryManager = taskEntryManager;
             this.configManager = configManager;
+            this.httpManager = httpManager;
         }
 
         @Override
@@ -87,7 +87,7 @@ public class SyncApi {
                 .flatMap(deviceType -> {
                     if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
                         return Observable.error(new UnsupportedException());
-                    return RequestUtil.getBody(req, TaskEntry.class);
+                    return httpManager.getBody(req, TaskEntry.class);
                 })
                 .flatMap(taskEntry -> {
                     if (taskEntry.getSyncedAt().isPresent()) {
@@ -102,11 +102,7 @@ public class SyncApi {
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 
@@ -114,11 +110,13 @@ public class SyncApi {
 
         private InputManager inputManager;
         private ConfigManager configManager;
+        private HttpManager httpManager;
 
         @Inject
-        public SyncInput(InputManager inputManager, ConfigManager configManager) {
+        public SyncInput(InputManager inputManager, ConfigManager configManager, HttpManager httpManager) {
             this.inputManager = inputManager;
             this.configManager = configManager;
+            this.httpManager = httpManager;
         }
 
         @Override
@@ -128,7 +126,7 @@ public class SyncApi {
                 .flatMap(deviceType -> {
                     if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
                         return Observable.error(new UnsupportedException());
-                    return RequestUtil.getBody(req, Input.class);
+                    return httpManager.getBody(req, Input.class);
                 })
                 .flatMap(input -> {
                     if (input.getSyncedAt().isPresent()) {
@@ -142,11 +140,7 @@ public class SyncApi {
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
-                .subscribe(Void -> {},
-                    error -> {
-                        log.error(error.toString());
-                        error.printStackTrace();
-                    });
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
     }
 }

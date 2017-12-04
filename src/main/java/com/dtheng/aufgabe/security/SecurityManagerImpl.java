@@ -4,6 +4,8 @@ import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.security.exception.InvalidPublicKey;
 import com.dtheng.aufgabe.security.exception.InvalidSignature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
@@ -49,6 +51,18 @@ public class SecurityManagerImpl implements SecurityManager {
             .map(String::toLowerCase)
             .flatMap(baseHash -> getHmacSha256("admin", baseHash))
             .map(String::toLowerCase);
+    }
+
+    @Override
+    public Observable<String> getSignature(Object object) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        ObjectWriter writer = objectMapper.writer();
+        try {
+            return getSignature(writer.writeValueAsString(object));
+        } catch (Exception e) {
+            return Observable.error(e);
+        }
     }
 
     private Observable<String> getHmacSha256(String data, String secret) {

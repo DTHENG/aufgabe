@@ -4,6 +4,7 @@ import com.dtheng.aufgabe.input.dto.InputSyncRequest;
 import com.dtheng.aufgabe.task.dto.TaskSyncRequest;
 import com.dtheng.aufgabe.taskentry.dto.TaskEntrySyncRequest;
 import retrofit.http.Body;
+import retrofit.http.Header;
 import retrofit.http.POST;
 import rx.Observable;
 
@@ -13,11 +14,11 @@ import rx.Observable;
 public interface SyncClient {
 
     @POST("/sync/task")
-    Observable<Void> syncTask(@Body TaskSyncRequest request);
+    Observable<Void> syncTask(@Header("Public-Key") String publicKey, @Header("Signature") String signature, @Body TaskSyncRequest request);
 
     @POST("/sync/entry")
-    Observable<Void> syncTaskEntry(@Body TaskEntrySyncRequest request);
+    Observable<Void> syncTaskEntry(@Header("Public-Key") String publicKey, @Header("Signature") String signature, @Body TaskEntrySyncRequest request);
 
     @POST("/sync/input")
-    Observable<Void> syncInput(@Body InputSyncRequest request);
+    Observable<Void> syncInput(@Header("Public-Key") String publicKey, @Header("Signature") String signature, @Body InputSyncRequest request);
 }

@@ -11,5 +11,7 @@ public interface SecurityManager {
 
     Observable<Boolean> verifyRequest(String publicKey, String signature, String request);
 
+    Observable<String> getSignature(Object object);
+
     Observable<String> getSignature(String data);
 }
