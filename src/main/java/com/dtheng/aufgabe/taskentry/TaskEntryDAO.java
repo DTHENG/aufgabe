@@ -12,6 +12,7 @@ import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.SortOrder;
 import org.jooq.Table;
+import org.jooq.exception.DataAccessException;
 import rx.Observable;
 
 import java.util.ArrayList;
@@ -45,7 +46,14 @@ class TaskEntryDAO {
                 .set(field("taskId"), entry.getTaskId())
                 .set(field("inputId"), entry.getInputId())
                 .execute())
-            .flatMap(Void -> getTaskEntry(entry.getId()));
+            .flatMap(Void -> getTaskEntry(entry.getId()))
+            .onErrorResumeNext(error -> {
+                if (error instanceof DataAccessException) {
+                    log.error(error.getLocalizedMessage());
+                    return Observable.error(new AufgabeException("Unknown error"));
+                }
+                return Observable.error(error);
+            });
     }
 
     Observable<TaskEntry> getTaskEntry(String id) {
