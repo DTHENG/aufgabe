@@ -20,8 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-@Singleton
-public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListenerDigital, AufgabeService {
+public class GP2Y0A21YK0F_IrDistanceSensorInputListener extends BaseGpioPinListenerDigital {
 
     private static final int CRON_INTERVAL_MS = 1000 * 45;
 
@@ -38,17 +37,14 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
     }
 
     @Override
-    public Observable<Map<String, Object>> startUp() {
+    public Observable<Void> startUp() {
+
         Observable.interval(CRON_INTERVAL_MS, TimeUnit.MILLISECONDS)
             .flatMap(Void -> sensorCheckCron())
             .subscribe(Void -> {},
                 error -> log.error(error.toString()));
-        return Observable.empty();
-    }
 
-    @Override
-    public long order() {
-        return 1512352852;
+        return Observable.empty();
     }
 
     @Override
@@ -68,7 +64,6 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
             long diff = new Date().getTime() - lastMovement.getTime();
             if (diff > timeout && ! isMotionless) {
 				isMotionless = true;
-				log.debug("Emitting ir sensor event for input {}", inputId);
 				eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
                     .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, new Date(lastMovement.getTime())));
             }
