@@ -8,12 +8,13 @@ import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import rx.Observable;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class B3F_TactileSwitchInputListener implements GpioPinListenerDigital {
+public class B3F_TactileSwitchInputListener extends BaseGpioPinListenerDigital {
 
     @Setter
     private String inputId;
@@ -23,6 +24,11 @@ public class B3F_TactileSwitchInputListener implements GpioPinListenerDigital {
     @Inject
     public B3F_TactileSwitchInputListener(EventManager eventManager) {
         this.eventManager = eventManager;
+    }
+
+    @Override
+    public Observable<Void> startUp() {
+        return Observable.empty();
     }
 
     @Override

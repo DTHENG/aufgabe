@@ -35,12 +35,14 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputHandler implements InputHandler {
 
 	@Override
 	public Observable<Void> startUp(Input input) {
+		GP2Y0A21YK0F_IrDistanceSensorInputListener listener = aufgabeContext.getInjector().getInstance(GP2Y0A21YK0F_IrDistanceSensorInputListener.class);
 		return raspberryPiManager.getDigitalInput(input.getIoPin())
-			.doOnNext(digitalInput -> {
-				GP2Y0A21YK0F_IrDistanceSensorInputListener listener = aufgabeContext.getInjector().getInstance(GP2Y0A21YK0F_IrDistanceSensorInputListener.class);
-				listener.setInputId(input.getId());
-				digitalInput.addListener(listener);
-			})
+			.flatMap(digitalInput -> listener.startUp()
+					.defaultIfEmpty(null)
+					.doOnNext(Void -> {
+						listener.setInputId(input.getId());
+						digitalInput.addListener(listener);
+					}))
 			.ignoreElements().cast(Void.class);
 	}
 }
