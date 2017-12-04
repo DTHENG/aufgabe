@@ -31,4 +31,7 @@ public class AufgabeConfig {
     @JsonProperty("bonusly_enabled") private boolean bonuslyEnabled;
     @JsonProperty("bonusly_access_token") private Optional<String> bonuslyAccessToken = Optional.empty();
     @JsonProperty("bonusly_api_endpoint") private Optional<String> bonuslyApiEndpoint = Optional.empty();
+
+    @JsonProperty("security_public_key") private String publicKey;
+    @JsonProperty("security_private_key") private String privateKey;
 }

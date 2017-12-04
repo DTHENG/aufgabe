@@ -6,6 +6,7 @@ import org.mortbay.jetty.servlet.Context;
 import rx.Observable;
 
 import javax.servlet.Servlet;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
