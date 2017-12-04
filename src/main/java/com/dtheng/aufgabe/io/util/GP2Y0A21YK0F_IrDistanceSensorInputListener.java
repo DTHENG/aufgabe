@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.io.util;
 
+import com.dtheng.aufgabe.AufgabeService;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.taskentry.event.GP2Y0A21YK0F_IrDistanceSensorInputEvent;
 import com.google.inject.Inject;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Singleton
-public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListenerDigital {
+public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListenerDigital, AufgabeService {
 
     private static final int CRON_INTERVAL_MS = 1000 * 45;
 
@@ -33,11 +35,20 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
     @Inject
     public GP2Y0A21YK0F_IrDistanceSensorInputListener(EventManager eventManager) {
         this.eventManager = eventManager;
+    }
 
+    @Override
+    public Observable<Map<String, Object>> startUp() {
         Observable.interval(CRON_INTERVAL_MS, TimeUnit.MILLISECONDS)
             .flatMap(Void -> sensorCheckCron())
             .subscribe(Void -> {},
                 error -> log.error(error.toString()));
+        return Observable.empty();
+    }
+
+    @Override
+    public long order() {
+        return 1512352852;
     }
 
     @Override
@@ -51,10 +62,13 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
 
     private Observable<Void> sensorCheckCron() {
         return Observable.defer(() -> {
+            if (inputId == null)
+                return Observable.empty();
             long timeout = CRON_INTERVAL_MS * 3;
             long diff = new Date().getTime() - lastMovement.getTime();
             if (diff > timeout && ! isMotionless) {
 				isMotionless = true;
+				log.debug("Emitting ir sensor event for input {}", inputId);
 				eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
                     .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, new Date(lastMovement.getTime())));
             }
