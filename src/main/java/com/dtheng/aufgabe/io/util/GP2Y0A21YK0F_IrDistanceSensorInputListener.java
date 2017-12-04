@@ -68,6 +68,7 @@ public class GP2Y0A21YK0F_IrDistanceSensorInputListener implements GpioPinListen
             long diff = new Date().getTime() - lastMovement.getTime();
             if (diff > timeout && ! isMotionless) {
 				isMotionless = true;
+				log.debug("Emitting ir sensor event for input {}", inputId);
 				eventManager.getGP2Y0A21YK0F_IrDistanceSensorInput()
                     .trigger(new GP2Y0A21YK0F_IrDistanceSensorInputEvent(inputId, new Date(lastMovement.getTime())));
             }
