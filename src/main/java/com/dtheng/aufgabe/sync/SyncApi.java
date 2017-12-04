@@ -3,6 +3,9 @@ package com.dtheng.aufgabe.sync;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
+import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
+import com.dtheng.aufgabe.device.model.Device;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.HttpManager;
@@ -135,7 +138,45 @@ public class SyncApi {
 
                         throw new RuntimeException("Unimplemented");
                     } else {
-                        return inputManager.create(new InputCreateRequest(input.getIoPin(), input.getTaskId(), input.getHandler().getCanonicalName(), Optional.of(input.getCreatedAt()), Optional.of(input.getId()), Optional.of(input.getDevice())));
+                        return inputManager.create(new InputCreateRequest(input.getIoPin(), input.getTaskId(), input.getHandler().getCanonicalName(), Optional.of(input.getCreatedAt()), Optional.of(input.getId()), Optional.of(input.getDeviceId())));
+                    }
+                })
+                .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
+        }
+    }
+
+    public static class SyncDevice extends AufgabeServlet {
+
+        private DeviceManager deviceManager;
+        private ConfigManager configManager;
+        private HttpManager httpManager;
+
+        @Inject
+        public SyncDevice(DeviceManager deviceManager, ConfigManager configManager, HttpManager httpManager) {
+            this.deviceManager = deviceManager;
+            this.configManager = configManager;
+            this.httpManager = httpManager;
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            configManager.getConfig()
+                .map(AufgabeConfig::getDeviceType)
+                .flatMap(deviceType -> {
+                    if (deviceType != AufgabeDeviceType.EC2_INSTANCE)
+                        return Observable.error(new UnsupportedException());
+                    return httpManager.getBody(req, Device.class);
+                })
+                .flatMap(device -> {
+                    if (device.getSyncedAt().isPresent()) {
+
+                        // TODO: need to modify the deviceId here...
+
+                        throw new RuntimeException("Unimplemented");
+                    } else {
+                        return deviceManager.create(new DeviceCreateRequest(device.getId(), Optional.of(device.getCreatedAt()), device.getName(), device.getDescription()));
                     }
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))

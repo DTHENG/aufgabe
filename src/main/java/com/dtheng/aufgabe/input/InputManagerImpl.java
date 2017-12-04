@@ -114,7 +114,7 @@ public class InputManagerImpl implements InputManager {
 
     @Override
     public Observable<Input> performSync(Input input) {
-        InputSyncRequest request = new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName());
+        InputSyncRequest request = new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDeviceId(), input.getHandler().getCanonicalName());
         return Observable.zip(
             configManager.getConfig()
                 .map(AufgabeConfig::getPublicKey),
@@ -146,7 +146,7 @@ public class InputManagerImpl implements InputManager {
                 input.setCreatedAt(request.getCreatedAt().isPresent() ? request.getCreatedAt().get() : new Date());
                 input.setIoPin(request.getIoPin());
                 input.setTaskId(request.getTaskId());
-                input.setDevice(deviceId);
+                input.setDeviceId(deviceId);
                 try {
                     Class rawClass = Class.forName(request.getHandler());
                     try {

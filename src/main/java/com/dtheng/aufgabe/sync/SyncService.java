@@ -73,7 +73,7 @@ public class SyncService implements AufgabeService {
                         })
                         .subscribe(Void -> {}, error -> log.error(error.toString())));
 
-                eventManager.getTaskUpdatedEvent()
+                eventManager.getTaskUpdated()
                     .addListener((TaskUpdatedEvent event) -> taskManager.get(event.getId())
                         .map(AggregateTask::getTask)
                         .flatMap(task -> canSync()

@@ -26,7 +26,7 @@ CREATE TABLE input (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ioPin VARCHAR(128) NOT NULL,
-    device VARCHAR(128) NOT NULL,
+    deviceId VARCHAR(128) NOT NULL,
     taskId VARCHAR(128) NOT NULL,
     removedAt TIMESTAMP NULL,
     handler VARCHAR(128) NOT NULL,
@@ -42,5 +42,15 @@ CREATE TABLE sync_entry (
     completedAt TIMESTAMP NULL,
     numberOfRecordsSynced INT NULL,
     recordsSynced TEXT NULL,
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE device (
+    id VARCHAR(128) NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    name TEXT NULL,
+    description TEXT NULL,
+    updatedAt TIMESTAMP NULL,
+    syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );

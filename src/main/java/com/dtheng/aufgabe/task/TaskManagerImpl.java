@@ -104,7 +104,7 @@ public class TaskManagerImpl implements TaskManager {
         return taskDAO.update(id, request)
             .defaultIfEmpty(null)
             .flatMap(Void -> taskDAO.setUpdatedAt(id, new Date()))
-            .doOnNext(task -> eventManager.getTaskUpdatedEvent().trigger(new TaskUpdatedEvent(task.getId())))
+            .doOnNext(task -> eventManager.getTaskUpdated().trigger(new TaskUpdatedEvent(task.getId())))
             .flatMap(this::aggregate);
     }
 

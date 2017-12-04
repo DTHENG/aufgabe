@@ -107,7 +107,7 @@ public class StatsApi {
                     totals.put("entry", totalEntries);
                     totals.put("task", totalTasks);
                     totals.put("input", totalInputs);
-                    totals.put("device", totalDevices);
+                    totals.put("deviceId", totalDevices);
                     return totals;
                 });
         }
