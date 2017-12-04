@@ -9,5 +9,7 @@
   "sync_remote_ip": null,
   "bonusly_access_token": null,
   "bonusly_api_endpoint": null,
-  "bonusly_enabled": false
+  "bonusly_enabled": false,
+  "security_public_key": "herp",
+  "security_private_key": "derp"
 }

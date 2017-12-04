@@ -6,10 +6,10 @@ import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
-import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.device.DeviceService;
 import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
+import com.dtheng.aufgabe.security.SecurityManager;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.util.RandomString;
 import com.google.inject.Inject;
@@ -30,15 +30,17 @@ public class InputManagerImpl implements InputManager {
     private ConfigManager configManager;
     private SyncManager syncManager;
     private EventManager eventManager;
+    private SecurityManager securityManager;
 
     @Inject
     public InputManagerImpl(InputDAO inputDAO, DeviceService deviceService, ConfigManager configManager,
-                            SyncManager syncManager, EventManager eventManager) {
+                            SyncManager syncManager, EventManager eventManager, SecurityManager securityManager) {
         this.inputDAO = inputDAO;
         this.deviceService = deviceService;
         this.configManager = configManager;
         this.syncManager = syncManager;
         this.eventManager = eventManager;
+        this.securityManager = securityManager;
     }
 
     @Override
@@ -112,10 +114,17 @@ public class InputManagerImpl implements InputManager {
 
     @Override
     public Observable<Input> performSync(Input input) {
-        return syncManager.getSyncClient()
-            .flatMap(syncClient -> syncClient.syncInput(new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName()))
-                .defaultIfEmpty(null)
-                .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date())));
+        InputSyncRequest request = new InputSyncRequest(input.getId(), input.getCreatedAt().getTime(), input.getIoPin(), input.getTaskId(), input.getDevice(), input.getHandler().getCanonicalName());
+        return Observable.zip(
+            configManager.getConfig()
+                .map(AufgabeConfig::getPublicKey),
+            securityManager.getSignature(request),
+            syncManager.getSyncClient(),
+            (publicKey, signature, syncClient) ->
+                syncClient.syncInput(publicKey, signature, request))
+            .flatMap(o -> o)
+            .defaultIfEmpty(null)
+            .flatMap(Void -> inputDAO.setSyncedAt(input.getId(), new Date()));
     }
 
     @Override

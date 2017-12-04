@@ -1,6 +1,11 @@
 package com.dtheng.aufgabe.http;
 
 import com.dtheng.aufgabe.AufgabeContext;
+import com.dtheng.aufgabe.config.ConfigManager;
+import com.dtheng.aufgabe.exceptions.AufgabeException;
+import com.dtheng.aufgabe.security.SecurityManager;
+import com.dtheng.aufgabe.security.exception.MissingPublicKey;
+import com.dtheng.aufgabe.security.exception.MissingSignature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +15,13 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import rx.Observable;
 
 import javax.servlet.Servlet;
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>

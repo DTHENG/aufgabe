@@ -6,6 +6,7 @@ import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
+import com.dtheng.aufgabe.security.SecurityManager;
 import com.dtheng.aufgabe.sync.SyncManager;
 import com.dtheng.aufgabe.task.dto.*;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
@@ -34,16 +35,18 @@ public class TaskManagerImpl implements TaskManager {
     private SyncManager syncManager;
     private ConfigManager configManager;
     private EventManager eventManager;
+    private SecurityManager securityManager;
 
     @Inject
     public TaskManagerImpl(TaskDAO taskDAO, InputManager inputManager, TaskEntryManager taskEntryManager, SyncManager syncManager,
-                           ConfigManager configManager, EventManager eventManager) {
+                           ConfigManager configManager, EventManager eventManager, SecurityManager securityManager) {
         this.taskDAO = taskDAO;
         this.inputManager = inputManager;
         this.taskEntryManager = taskEntryManager;
         this.syncManager = syncManager;
         this.configManager = configManager;
         this.eventManager = eventManager;
+        this.securityManager = securityManager;
     }
 
     @Override
@@ -78,16 +81,22 @@ public class TaskManagerImpl implements TaskManager {
 
     @Override
     public Observable<Task> performSync(Task task) {
-        return syncManager.getSyncClient()
-            .flatMap(syncClient -> syncClient.syncTask(
-                new TaskSyncRequest(
-                    task.getId(),
-                    task.getCreatedAt().getTime(),
-                    task.getDescription(),
-                    task.getBonuslyMessage().orElse(null),
-                    task.getSyncedAt().isPresent() ? task.getSyncedAt().get().getTime() : null))
-                .defaultIfEmpty(null)
-                .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date())));
+        TaskSyncRequest request = new TaskSyncRequest(
+            task.getId(),
+            task.getCreatedAt().getTime(),
+            task.getDescription(),
+            task.getBonuslyMessage().orElse(null),
+            task.getSyncedAt().isPresent() ? task.getSyncedAt().get().getTime() : null);
+        return Observable.zip(
+            configManager.getConfig()
+                .map(AufgabeConfig::getPublicKey),
+            securityManager.getSignature(request),
+            syncManager.getSyncClient(),
+            (publicKey, signature, syncClient) ->
+                syncClient.syncTask(publicKey, signature, request))
+            .flatMap(o -> o)
+            .defaultIfEmpty(null)
+            .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date()));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.input;
 
+import com.dtheng.aufgabe.http.HttpManager;
 import com.dtheng.aufgabe.input.dto.InputCreateRequest;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.config.ConfigManager;
@@ -75,11 +76,13 @@ public class InputApi {
 
         private InputManager inputManager;
         private ConfigManager configManager;
+        private HttpManager httpManager;
 
         @Inject
-        public CreateCreate(InputManager inputManager, ConfigManager configManager) {
+        public CreateCreate(InputManager inputManager, ConfigManager configManager, HttpManager httpManager) {
             this.inputManager = inputManager;
             this.configManager = configManager;
+            this.httpManager = httpManager;
         }
 
         @Override
@@ -87,19 +90,15 @@ public class InputApi {
             configManager.getConfig()
                 .map(AufgabeConfig::getDeviceType)
                 .filter(deviceType -> {
-                    if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
-                        throw new UnsupportedException();
-                    return true;
+                    switch (deviceType) {
+                        case RASPBERRY_PI:
+                        case MAC_OS:
+                            return true;
+                        default:
+                            throw new UnsupportedException();
+                    }
                 })
-                .flatMap(Void -> RequestUtil.getBody(req, InputCreateRequest.class)
-                    .defaultIfEmpty(null))
-                .map(Optional::ofNullable)
-                .filter(inputCreateRequest -> {
-                    if ( ! inputCreateRequest.isPresent())
-                        throw new AufgabeException("Invalid request");
-                    return true;
-                })
-                .map(Optional::get)
+                .flatMap(Void -> httpManager.getBody(req, InputCreateRequest.class))
                 .flatMap(inputManager::create)
                 .flatMap(input -> ResponseUtil.set(resp, input, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
@@ -111,21 +110,28 @@ public class InputApi {
 
         private InputManager inputManager;
         private ConfigManager configManager;
+        private HttpManager httpManager;
 
         @Inject
-        public RemoveInput(InputManager inputManager, ConfigManager configManager) {
+        public RemoveInput(InputManager inputManager, ConfigManager configManager, HttpManager httpManager) {
             this.inputManager = inputManager;
             this.configManager = configManager;
+            this.httpManager = httpManager;
         }
 
         @Override
         protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-            configManager.getConfig()
+            httpManager.verifyGetRequest(req)
+                .flatMap(Void -> configManager.getConfig())
                 .map(AufgabeConfig::getDeviceType)
                 .filter(deviceType -> {
-                    if (deviceType != AufgabeDeviceType.RASPBERRY_PI)
-                        throw new UnsupportedException();
-                    return true;
+                    switch (deviceType) {
+                        case RASPBERRY_PI:
+                        case MAC_OS:
+                            return true;
+                        default:
+                            throw new UnsupportedException();
+                    }
                 })
                 .flatMap(Void -> inputManager.remove(req.getPathInfo().substring(1, req.getPathInfo().length())))
                 .flatMap(removedInput -> ResponseUtil.set(resp, removedInput, 200))
