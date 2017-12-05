@@ -5,6 +5,7 @@ import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.device.DeviceManager;
 import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
+import com.dtheng.aufgabe.device.dto.DeviceUpdateRequest;
 import com.dtheng.aufgabe.device.model.Device;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
@@ -170,14 +171,9 @@ public class SyncApi {
                     return httpManager.getBody(req, Device.class);
                 })
                 .flatMap(device -> {
-                    if (device.getSyncedAt().isPresent()) {
-
-                        // TODO: need to modify the deviceId here...
-
-                        throw new RuntimeException("Unimplemented");
-                    } else {
+                    if ( ! device.getSyncedAt().isPresent())
                         return deviceManager.create(new DeviceCreateRequest(Optional.of(device.getId()), Optional.of(device.getCreatedAt()), device.getName(), device.getDescription()));
-                    }
+                    return deviceManager.update(device.getId(), new DeviceUpdateRequest(device.getName(), device.getDescription()));
                 })
                 .flatMap(Void -> ResponseUtil.set(resp, Optional.empty(), 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))

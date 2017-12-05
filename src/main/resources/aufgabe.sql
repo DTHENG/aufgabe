@@ -35,16 +35,6 @@ CREATE TABLE input (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE sync_entry (
-    id VARCHAR(128) NOT NULL,
-    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    startedAt TIMESTAMP NULL,
-    completedAt TIMESTAMP NULL,
-    numberOfRecordsSynced INT NULL,
-    recordsSynced TEXT NULL,
-    PRIMARY KEY(id)
-);
-
 CREATE TABLE device (
     id VARCHAR(128) NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1,5 +1,7 @@
 package com.dtheng.aufgabe.device;
 
+import com.dtheng.aufgabe.device.dto.AggregateDevice;
+import com.dtheng.aufgabe.device.dto.DeviceUpdateRequest;
 import com.dtheng.aufgabe.device.dto.DevicesRequest;
 import com.dtheng.aufgabe.device.dto.DevicesResponse;
 import com.dtheng.aufgabe.device.exception.DeviceNotFoundException;
@@ -9,14 +11,12 @@ import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 import rx.Observable;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
@@ -86,6 +86,7 @@ public class DeviceDAO {
                     .limit(request.getLimit())
                     .fetch())
                     .concatMap(this::toDevice)
+                    .map(device -> new AggregateDevice(device, false))
                     .toList()
                     .map(list -> new DevicesResponse(request.getOffset(), request.getLimit(), total, list));
             });
@@ -111,6 +112,20 @@ public class DeviceDAO {
                     .execute();
                 return getDevice(id);
             });
+    }
+
+    Observable<Void> update(String id, DeviceUpdateRequest request) {
+        Map<Field, String> set = new HashMap<>();
+        if (request.getName().isPresent())
+            set.put(field("name"), request.getName().get());
+        if (request.getDescription().isPresent())
+            set.put(field("description"), request.getDescription().get());
+        return jooqService.getConnection()
+            .doOnNext(connection -> connection.update(TABLE)
+                .set(set)
+                .where(field("id").eq(id))
+                .execute())
+            .ignoreElements().cast(Void.class);
     }
 
     private Observable<Device> toDevice(Record record) {

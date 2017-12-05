@@ -1,6 +1,7 @@
 package com.dtheng.aufgabe.device;
 
 import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
+import com.dtheng.aufgabe.device.dto.DeviceUpdateRequest;
 import com.dtheng.aufgabe.device.dto.DevicesRequest;
 import com.dtheng.aufgabe.device.dto.DevicesResponse;
 import com.dtheng.aufgabe.device.model.Device;
@@ -20,4 +21,6 @@ public interface DeviceManager {
     Observable<Device> create(DeviceCreateRequest request);
 
     Observable<Device> performSync(Device device);
+
+    Observable<Device> update(String id, DeviceUpdateRequest request);
 }
