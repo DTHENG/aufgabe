@@ -41,12 +41,7 @@ public class InputApi {
             RequestUtil.getBody(req, InputsRequest.class)
                 .defaultIfEmpty(null)
                 .map(Optional::ofNullable)
-                .filter(inputsRequest -> {
-                    if ( ! inputsRequest.isPresent())
-                        throw new AufgabeException("Invalid request");
-                    return true;
-                })
-                .map(Optional::get)
+                .map(inputsRequest -> inputsRequest.orElseGet(InputsRequest::new))
                 .flatMap(inputManager::get)
                 .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))

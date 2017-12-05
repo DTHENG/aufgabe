@@ -35,6 +35,9 @@ public class TaskApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             RequestUtil.getBody(req, TasksRequest.class)
+                .defaultIfEmpty(null)
+                .map(Optional::ofNullable)
+                .map(tasksRequest -> tasksRequest.orElseGet(TasksRequest::new))
                 .flatMap(taskManager::get)
                 .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))

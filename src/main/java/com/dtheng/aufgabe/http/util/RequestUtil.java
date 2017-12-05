@@ -19,7 +19,7 @@ public class RequestUtil {
 
     public static <T> Observable<T> getBody(HttpServletRequest request, Class<T> classRef) {
         if (request.getContentType() == null || ! request.getContentType().contains("application/json"))
-            return Observable.error(new AufgabeException("Content-Type must be application/json"));
+            return Observable.empty();
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader bufferedReader = null;
         Throwable throwable = null;
