@@ -44,7 +44,7 @@ public class InputService implements AufgabeService {
                     case RASPBERRY_PI:
                         InputsRequest request = new InputsRequest();
                         request.setLimit(29);
-                        request.setDevice(Optional.of(deviceId));
+                        request.setDeviceId(Optional.of(deviceId));
                         return inputManager.get(request)
                             .flatMap(resp -> Observable.from(resp.getInputs())
                                 .flatMap(input -> {

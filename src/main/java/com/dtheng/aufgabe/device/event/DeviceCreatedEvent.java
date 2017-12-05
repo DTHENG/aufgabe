@@ -1,8 +1,6 @@
-package com.dtheng.aufgabe.stats.dto;
+package com.dtheng.aufgabe.device.event;
 
 import lombok.*;
-
-import java.util.List;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -12,8 +10,7 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class AggregateDevice {
+public class DeviceCreatedEvent {
 
     private String id;
-    private List<String> activeInputs;
 }

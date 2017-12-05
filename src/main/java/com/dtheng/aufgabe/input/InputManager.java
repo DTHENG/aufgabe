@@ -20,6 +20,4 @@ public interface InputManager {
     Observable<Input> remove(String id);
 
     Observable<Input> performSync(Input input);
-
-    Observable<String> getDevices();
 }

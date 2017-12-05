@@ -12,7 +12,7 @@ import org.junit.Test;
  * @author Daniel Thengvall <fender5289@gmail.com>
  */
 @Slf4j
-public class DeviceTest {
+public class DeviceServiceTest {
 
     private DeviceService deviceService;
 
