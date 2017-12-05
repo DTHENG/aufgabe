@@ -1,13 +1,10 @@
-package com.dtheng.aufgabe.stats.dto;
+package com.dtheng.aufgabe.device.dto;
 
 import com.dtheng.aufgabe.device.model.Device;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -17,9 +14,10 @@ import java.util.Map;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class StatsDefaultResponse {
+public class DevicesResponse {
 
+    private int offset = 0;
+    private int limit = 10;
+    private int total = 0;
     private List<Device> devices = new ArrayList<>();
-    private Map<String, Integer> totals = new HashMap<>();
-    private List<JsonNode> recent = new ArrayList<>();
 }

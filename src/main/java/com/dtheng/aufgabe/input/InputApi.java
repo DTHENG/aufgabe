@@ -99,6 +99,8 @@ public class InputApi {
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
+
+
     }
 
     public static class RemoveInput extends AufgabeServlet {

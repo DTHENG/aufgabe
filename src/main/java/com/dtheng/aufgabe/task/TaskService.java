@@ -5,7 +5,6 @@ import com.dtheng.aufgabe.bonusly.BonuslyService;
 import com.dtheng.aufgabe.bonusly.dto.BonuslyResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.event.EventManager;
-import com.dtheng.aufgabe.task.dto.AggregateTask;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.event.TaskEntryCreatedEvent;
 import com.google.inject.Inject;
@@ -60,7 +59,6 @@ public class TaskService implements AufgabeService {
     private Observable<Void> onTaskEntryCreated(String id) {
         return taskEntryManager.get(id)
             .flatMap(taskEntry -> taskManager.get(taskEntry.getTaskId()))
-            .map(AggregateTask::getTask)
             .filter(task -> task.getBonuslyMessage().isPresent())
             .flatMap(task -> bonuslyService.send(task.getBonuslyMessage().get()))
             .onErrorResumeNext(throwable -> {

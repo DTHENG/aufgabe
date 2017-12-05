@@ -11,13 +11,13 @@ import rx.Observable;
 @ImplementedBy(TaskManagerImpl.class)
 public interface TaskManager {
 
-	Observable<AggregateTask> get(String id);
+	Observable<Task> get(String id);
 
-	Observable<AggregateTasksResponse> get(TasksRequest request);
+	Observable<TasksResponse> get(TasksRequest request);
 
-	Observable<AggregateTask> create(TaskCreateRequest request);
+	Observable<Task> create(TaskCreateRequest request);
 
     Observable<Task> performSync(Task task);
 
-    Observable<AggregateTask> update(String id, TaskUpdateRequest request);
+    Observable<Task> update(String id, TaskUpdateRequest request);
 }

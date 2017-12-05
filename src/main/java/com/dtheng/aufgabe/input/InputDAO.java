@@ -3,7 +3,6 @@ package com.dtheng.aufgabe.input;
 import com.dtheng.aufgabe.input.dto.*;
 import com.dtheng.aufgabe.input.exception.InputNotFoundException;
 import com.dtheng.aufgabe.input.model.Input;
-import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.util.DateUtil;
 import com.google.inject.Inject;
@@ -40,7 +39,7 @@ class InputDAO {
                 .set(field("createdAt"), input.getCreatedAt())
                 .set(field("ioPin"), input.getIoPin())
                 .set(field("taskId"), input.getTaskId())
-                .set(field("device"), input.getDevice())
+                .set(field("deviceId"), input.getDeviceId())
                 .set(field("handler"), input.getHandler().getCanonicalName())
                 .execute())
             .flatMap(Void -> getInput(input.getId()));
@@ -80,8 +79,8 @@ class InputDAO {
                 where.add(field("removedAt").isNull());
                 if (request.getTaskId().isPresent())
                     where.add(field("taskId").eq(request.getTaskId().get()));
-                if (request.getDevice().isPresent())
-                    where.add(field("device").eq(request.getDevice().get()));
+                if (request.getDeviceId().isPresent())
+                    where.add(field("deviceId").eq(request.getDeviceId().get()));
                 if (request.getIoPin().isPresent())
                     where.add((field("ioPin").eq(request.getIoPin().get())));
                 if (request.getHandler().isPresent())
@@ -136,16 +135,6 @@ class InputDAO {
             });
     }
 
-    Observable<String> getDevices() {
-        return jooqService.getConnection()
-            .flatMap(connection -> Observable.from(
-                connection
-                    .selectDistinct(field("device"))
-                    .from(TABLE)
-                    .fetch()))
-            .map(result -> result.getValue("device").toString());
-    }
-
     private Observable<Class<? extends InputHandler>> getHandler(String className) {
         return getClassForName(className)
             .flatMap(rawClass -> getNewInstanceOfClass(rawClass)
@@ -179,7 +168,7 @@ class InputDAO {
                 createdAt,
                 record.getValue("ioPin").toString(),
                 record.getValue("taskId").toString(),
-                record.getValue("device").toString(),
+                record.getValue("deviceId").toString(),
                 Optional.ofNullable(removedAt),
                 handler,
                 Optional.ofNullable(updatedAt),
