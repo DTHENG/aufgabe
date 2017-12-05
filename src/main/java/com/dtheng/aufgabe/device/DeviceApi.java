@@ -3,7 +3,9 @@ package com.dtheng.aufgabe.device;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
+import com.dtheng.aufgabe.device.dto.DeviceUpdateRequest;
 import com.dtheng.aufgabe.device.dto.DevicesRequest;
+import com.dtheng.aufgabe.exceptions.AufgabeException;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
 import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.HttpManager;
@@ -12,6 +14,7 @@ import com.dtheng.aufgabe.http.util.RequestUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import rx.Observable;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -95,6 +98,28 @@ public class DeviceApi {
                 .flatMap(Void -> httpManager.getBody(req, DeviceCreateRequest.class))
                 .flatMap(deviceManager::create)
                 .flatMap(input -> ResponseUtil.set(resp, input, 200))
+                .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
+                .subscribe(Void -> {}, error -> log.error(error.toString()));
+        }
+    }
+
+
+    public static class UpdateDevice extends AufgabeServlet {
+
+        private DeviceManager deviceManager;
+        private HttpManager httpManager;
+
+        @Inject
+        public UpdateDevice(DeviceManager deviceManager, HttpManager httpManager) {
+            this.deviceManager = deviceManager;
+            this.httpManager = httpManager;
+        }
+
+        @Override
+        protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+            httpManager.getBody(req, DeviceUpdateRequest.class)
+                .flatMap(request -> deviceManager.update(req.getPathInfo().substring(1, req.getPathInfo().length()), request))
+                .flatMap(task -> ResponseUtil.set(resp, task, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))
                 .subscribe(Void -> {}, error -> log.error(error.toString()));
         }

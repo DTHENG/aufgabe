@@ -1,10 +1,8 @@
 package com.dtheng.aufgabe.device.dto;
 
 import com.dtheng.aufgabe.device.model.Device;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -14,10 +12,8 @@ import java.util.List;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class DevicesResponse {
+public class AggregateDevice {
 
-    private int offset = 0;
-    private int limit = 10;
-    private int total = 0;
-    private List<AggregateDevice> devices = new ArrayList<>();
+    @JsonUnwrapped private Device device;
+    private boolean self = false;
 }

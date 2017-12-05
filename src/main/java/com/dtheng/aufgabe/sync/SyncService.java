@@ -5,9 +5,11 @@ import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.dto.AggregateDevice;
 import com.dtheng.aufgabe.device.dto.DevicesRequest;
 import com.dtheng.aufgabe.device.dto.DevicesResponse;
 import com.dtheng.aufgabe.device.event.DeviceCreatedEvent;
+import com.dtheng.aufgabe.device.event.DeviceUpdatedEvent;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.input.dto.InputsRequest;
@@ -97,7 +99,10 @@ public class SyncService implements AufgabeService {
                         return Observable.error(throwable);
                     })
                     .subscribe(Void -> {},
-                        error -> log.error(error.toString()));
+                        error -> {
+                            log.error(error.toString());
+                            error.printStackTrace();
+                        });
 
                 /** Task Entry */
 
@@ -150,6 +155,18 @@ public class SyncService implements AufgabeService {
 
                 eventManager.getDeviceCreated()
                     .addListener((DeviceCreatedEvent event) -> deviceManager.get(event.getId())
+                        .flatMap(device -> canSync()
+                            .filter(canSync -> canSync)
+                            .flatMap(Void -> deviceManager.performSync(device)))
+                        .onErrorResumeNext(throwable -> {
+                            if (throwable instanceof RetrofitError)
+                                return Observable.empty();
+                            return Observable.error(throwable);
+                        })
+                        .subscribe(Void -> {}, error -> log.error(error.toString())));
+
+                eventManager.getDeviceUpdated()
+                    .addListener((DeviceUpdatedEvent event) -> deviceManager.get(event.getId())
                         .flatMap(device -> canSync()
                             .filter(canSync -> canSync)
                             .flatMap(Void -> deviceManager.performSync(device)))
@@ -222,6 +239,7 @@ public class SyncService implements AufgabeService {
             .flatMap(Void -> deviceManager.get(devicesRequest))
             .map(DevicesResponse::getDevices)
             .flatMap(Observable::from)
+            .map(AggregateDevice::getDevice)
             .flatMap(deviceManager::performSync)
             .ignoreElements().cast(Void.class);
     }

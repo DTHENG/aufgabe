@@ -36,7 +36,7 @@ public class SecurityManagerImpl implements SecurityManager {
             })
             .flatMap(calcSig -> {
                 if ( ! calcSig.equals(signature)) {
-                    log.info("Returning invalid signature for request, correct signature: \"{}\", body: \"{}\"", calcSig, request);
+                    log.warn("Returning invalid signature for request, correct signature: \"{}\", body: \"{}\"", calcSig, request);
                     return Observable.error(new InvalidSignature());
                 }
                 return Observable.just(true);
@@ -55,11 +55,14 @@ public class SecurityManagerImpl implements SecurityManager {
 
     @Override
     public Observable<String> getSignature(Object object) {
+        log.debug("getSignature from object: {}", object);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
         ObjectWriter writer = objectMapper.writer();
         try {
-            return getSignature(writer.writeValueAsString(object));
+            String asString = writer.writeValueAsString(object);
+            log.debug("asString: '{}'", asString);
+            return getSignature(asString);
         } catch (Exception e) {
             return Observable.error(e);
         }

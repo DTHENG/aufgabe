@@ -79,15 +79,18 @@ public class TaskManagerImpl implements TaskManager {
             task.getId(),
             task.getCreatedAt().getTime(),
             task.getDescription(),
-            task.getBonuslyMessage().orElse(null),
-            task.getSyncedAt().isPresent() ? task.getSyncedAt().get().getTime() : null);
+            task.getBonuslyMessage().orElse(null));
         return Observable.zip(
             configManager.getConfig()
                 .map(AufgabeConfig::getPublicKey),
             securityManager.getSignature(request),
             syncManager.getSyncClient(),
-            (publicKey, signature, syncClient) ->
-                syncClient.syncTask(publicKey, signature, request))
+            (publicKey, signature, syncClient) -> {
+                log.debug("publicKey: \"{}\"", publicKey);
+                log.debug("signature: \"{}\"", signature);
+                return syncClient.syncTask(publicKey, signature, request);
+            }
+                )
             .flatMap(o -> o)
             .defaultIfEmpty(null)
             .flatMap(Void -> taskDAO.setSyncedAt(task.getId(), new Date()));
