@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.stats.dto;
 
+import com.dtheng.aufgabe.device.dto.AggregateDevice;
 import com.dtheng.aufgabe.device.model.Device;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
@@ -19,7 +20,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class StatsDefaultResponse {
 
-    private List<Device> devices = new ArrayList<>();
+    private List<AggregateDevice> devices = new ArrayList<>();
     private Map<String, Integer> totals = new HashMap<>();
     private List<JsonNode> recent = new ArrayList<>();
 }

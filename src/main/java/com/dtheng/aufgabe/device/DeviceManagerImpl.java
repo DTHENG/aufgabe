@@ -2,11 +2,9 @@ package com.dtheng.aufgabe.device;
 
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
-import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
-import com.dtheng.aufgabe.device.dto.DeviceSyncRequest;
-import com.dtheng.aufgabe.device.dto.DevicesRequest;
-import com.dtheng.aufgabe.device.dto.DevicesResponse;
+import com.dtheng.aufgabe.device.dto.*;
 import com.dtheng.aufgabe.device.event.DeviceCreatedEvent;
+import com.dtheng.aufgabe.device.event.DeviceUpdatedEvent;
 import com.dtheng.aufgabe.device.model.Device;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.exceptions.UnsupportedException;
@@ -49,35 +47,46 @@ public class DeviceManagerImpl implements DeviceManager {
 
     @Override
     public Observable<DevicesResponse> get(DevicesRequest request) {
-        return deviceDAO.getDevices(request);
+        return Observable.zip(
+            deviceService.getDeviceId(),
+            deviceDAO.getDevices(request),
+            (deviceId, devicesResponse) ->
+                Observable.from(devicesResponse.getDevices())
+                    .map(aggregateDevice -> {
+                        if (aggregateDevice.getDevice().getId().equals(deviceId))
+                            aggregateDevice.setSelf(true);
+                        return aggregateDevice;
+                    })
+                    .toList()
+                    .map(aggregateDevices -> {
+                        devicesResponse.setDevices(aggregateDevices);
+                        return devicesResponse;
+                    }))
+            .flatMap(o -> o);
     }
 
     @Override
     public Observable<Device> create(DeviceCreateRequest request) {
         return deviceService.getDeviceId()
-            .flatMap(deviceId -> configManager.getConfig().map(AufgabeConfig::getDeviceType)
-                .flatMap(deviceType -> {
-                    switch (deviceType) {
-                        case RASPBERRY_PI:
-                        case MAC_OS:
-                            return deviceDAO.createDevice(
-                                new Device(
-                                    request.getId().orElseGet(() -> deviceId),
-                                    request.getCreatedAt().orElseGet(Date::new),
-                                    request.getName(),
-                                    request.getDescription(),
-                                    Optional.empty(),
-                                    Optional.empty()));
-                        default:
-                            return Observable.error(new UnsupportedException());
-                    }
-                })
+            .flatMap(deviceId -> deviceDAO.createDevice(
+                new Device(
+                    request.getId().orElseGet(() -> deviceId),
+                    request.getCreatedAt().orElseGet(Date::new),
+                    request.getName(),
+                    request.getDescription(),
+                    Optional.empty(),
+                    Optional.empty()))
                 .doOnNext(device -> eventManager.getDeviceCreated().trigger(new DeviceCreatedEvent(device.getId()))));
     }
 
     @Override
     public Observable<Device> performSync(Device device) {
-        DeviceSyncRequest request = new DeviceSyncRequest(device.getId(), device.getCreatedAt().getTime(), device.getName().orElseGet(() -> null), device.getDescription().orElseGet(() -> null));
+        DeviceSyncRequest request = new DeviceSyncRequest(
+            device.getId(),
+            device.getCreatedAt().getTime(),
+            device.getName().orElseGet(() -> null),
+            device.getDescription().orElseGet(() -> null),
+            device.getSyncedAt().isPresent() ? device.getSyncedAt().get().getTime() : null);
         return Observable.zip(
             configManager.getConfig()
                 .map(AufgabeConfig::getPublicKey),
@@ -88,5 +97,13 @@ public class DeviceManagerImpl implements DeviceManager {
             .flatMap(o -> o)
             .defaultIfEmpty(null)
             .flatMap(Void -> deviceDAO.setSyncedAt(device.getId(), new Date()));
+    }
+
+    @Override
+    public Observable<Device> update(String id, DeviceUpdateRequest request) {
+        return deviceDAO.update(id, request)
+            .defaultIfEmpty(null)
+            .flatMap(Void -> deviceDAO.setUpdatedAt(id, new Date()))
+            .doOnNext(device -> eventManager.getDeviceUpdated().trigger(new DeviceUpdatedEvent(device.getId())));
     }
 }

@@ -2,6 +2,7 @@ package com.dtheng.aufgabe.stats;
 
 import com.dtheng.aufgabe.AufgabeContext;
 import com.dtheng.aufgabe.device.DeviceManager;
+import com.dtheng.aufgabe.device.dto.AggregateDevice;
 import com.dtheng.aufgabe.device.dto.DevicesRequest;
 import com.dtheng.aufgabe.device.dto.DevicesResponse;
 import com.dtheng.aufgabe.device.model.Device;
@@ -81,7 +82,7 @@ public class StatsApi {
                 .subscribe(Void -> {}, error -> log.error(error.toString()));
         }
 
-        private Observable<Device> buildDevicesList() {
+        private Observable<AggregateDevice> buildDevicesList() {
             return deviceManager.get(new DevicesRequest())
                 .flatMap(devicesResponse -> Observable.from(devicesResponse.getDevices()));
         }
@@ -94,10 +95,10 @@ public class StatsApi {
                 deviceManager.get(new DevicesRequest()).map(DevicesResponse::getTotal),
                 (totalEntries, totalTasks, totalInputs, totalDevices) -> {
                     Map<String, Integer> totals = new HashMap<>();
-                    totals.put("entry", totalEntries);
-                    totals.put("task", totalTasks);
-                    totals.put("input", totalInputs);
-                    totals.put("deviceId", totalDevices);
+                    totals.put("entries", totalEntries);
+                    totals.put("tasks", totalTasks);
+                    totals.put("inputs", totalInputs);
+                    totals.put("devices", totalDevices);
                     return totals;
                 });
         }

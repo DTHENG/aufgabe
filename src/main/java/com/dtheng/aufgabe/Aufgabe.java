@@ -92,6 +92,7 @@ public class Aufgabe {
                     routes.put("/deviceId", DeviceApi.CreateCreate.class);
                     routes.put("/devices", DeviceApi.Devices.class);
                     routes.put("/deviceFromId/*", DeviceApi.GetDevice.class);
+                    routes.put("/device/update/*", DeviceApi.UpdateDevice.class);
 
                     // Info api
                     routes.put("/config", ConfigApi.InputConfig.class);
