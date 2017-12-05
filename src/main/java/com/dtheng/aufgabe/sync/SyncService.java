@@ -5,7 +5,6 @@ import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.dtheng.aufgabe.config.model.AufgabeDeviceType;
 import com.dtheng.aufgabe.device.DeviceManager;
-import com.dtheng.aufgabe.device.dto.DeviceCreateRequest;
 import com.dtheng.aufgabe.device.dto.DevicesRequest;
 import com.dtheng.aufgabe.device.dto.DevicesResponse;
 import com.dtheng.aufgabe.device.event.DeviceCreatedEvent;
@@ -15,9 +14,8 @@ import com.dtheng.aufgabe.input.dto.InputsRequest;
 import com.dtheng.aufgabe.input.dto.InputsResponse;
 import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.task.TaskManager;
-import com.dtheng.aufgabe.task.dto.AggregateTask;
-import com.dtheng.aufgabe.task.dto.AggregateTasksResponse;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
+import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
 import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
@@ -69,7 +67,6 @@ public class SyncService implements AufgabeService {
 
                 eventManager.getTaskCreated()
                     .addListener((TaskCreatedEvent event) -> taskManager.get(event.getId())
-                        .map(AggregateTask::getTask)
                         .flatMap(task -> canSync()
                             .filter(canSync -> canSync)
                             .flatMap(Void -> taskManager.performSync(task)))
@@ -82,7 +79,6 @@ public class SyncService implements AufgabeService {
 
                 eventManager.getTaskUpdated()
                     .addListener((TaskUpdatedEvent event) -> taskManager.get(event.getId())
-                        .map(AggregateTask::getTask)
                         .flatMap(task -> canSync()
                             .filter(canSync -> canSync)
                             .flatMap(Void -> taskManager.performSync(task)))
@@ -188,9 +184,8 @@ public class SyncService implements AufgabeService {
         return canSync()
             .filter(canSync -> canSync)
             .flatMap(Void -> taskManager.get(tasksRequest))
-            .map(AggregateTasksResponse::getTasks)
+            .map(TasksResponse::getTasks)
             .flatMap(Observable::from)
-            .map(AggregateTask::getTask)
             .flatMap(taskManager::performSync)
             .ignoreElements().cast(Void.class);
     }

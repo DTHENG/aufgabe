@@ -16,9 +16,8 @@ import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.stats.dto.StatsDefaultResponse;
 import com.dtheng.aufgabe.task.TaskManager;
-import com.dtheng.aufgabe.task.dto.AggregateTask;
-import com.dtheng.aufgabe.task.dto.AggregateTasksResponse;
 import com.dtheng.aufgabe.task.dto.TasksRequest;
+import com.dtheng.aufgabe.task.dto.TasksResponse;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;
 import com.dtheng.aufgabe.taskentry.dto.EntriesRequest;
@@ -90,7 +89,7 @@ public class StatsApi {
         private Observable<Map<String, Integer>> buildTotalsMap() {
             return Observable.zip(
                 taskEntryManager.get(new EntriesRequest()).map(EntriesResponse::getTotal),
-                taskManager.get(new TasksRequest()).map(AggregateTasksResponse::getTotal),
+                taskManager.get(new TasksRequest()).map(TasksResponse::getTotal),
                 inputManager.get(new InputsRequest()).map(InputsResponse::getTotal),
                 deviceManager.get(new DevicesRequest()).map(DevicesResponse::getTotal),
                 (totalEntries, totalTasks, totalInputs, totalDevices) -> {
@@ -103,7 +102,7 @@ public class StatsApi {
                 });
         }
 
-        private Observable<JsonNode> toAggregateTaskEntry(TaskEntry entry, AggregateTask task) {
+        private Observable<JsonNode> toAggregateTaskEntry(TaskEntry entry, Task task) {
             return Observable.zip(
                 configManager.getConfig(),
                 inputManager.get(entry.getInputId())
@@ -119,7 +118,7 @@ public class StatsApi {
                     node.remove("createdAt");
                     node.remove("updatedAt");
                     node.remove("syncedAt");
-                    node.put("task", task.getTask().getDescription());
+                    node.put("task", task.getDescription());
                     node.put("source", handlerName);
                     long timeZoneOffset = TimeZone.getTimeZone(configuration.getTimeZone()).getRawOffset();
                     Date adjustedDate = new Date(entry.getCreatedAt().getTime() + timeZoneOffset);

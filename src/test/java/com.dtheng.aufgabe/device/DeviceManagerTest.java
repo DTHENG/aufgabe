@@ -9,7 +9,6 @@ import com.dtheng.aufgabe.device.model.Device;
 import com.dtheng.aufgabe.input.InputManager;
 import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.task.TaskManager;
-import com.dtheng.aufgabe.task.dto.AggregateTask;
 import com.dtheng.aufgabe.task.dto.TaskCreateRequest;
 import com.dtheng.aufgabe.task.model.Task;
 import com.dtheng.aufgabe.util.RandomString;
@@ -53,7 +52,7 @@ public class DeviceManagerTest {
 
         TaskCreateRequest createRequest = new TaskCreateRequest();
         createRequest.setDescription("test task");
-        testTask = taskManager.create(createRequest).map(AggregateTask::getTask).toBlocking().single();
+        testTask = taskManager.create(createRequest).toBlocking().single();
     }
 
     @Test

@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>
@@ -37,6 +38,9 @@ public class DeviceApi {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
             RequestUtil.getBody(req, DevicesRequest.class)
+                .defaultIfEmpty(null)
+                .map(Optional::ofNullable)
+                .map(devicesRequest -> devicesRequest.orElseGet(DevicesRequest::new))
                 .flatMap(deviceManager::get)
                 .flatMap(entries -> ResponseUtil.set(resp, entries, 200))
                 .onErrorResumeNext(throwable -> ErrorUtil.handle(throwable, resp))

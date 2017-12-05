@@ -11,7 +11,6 @@ import com.dtheng.aufgabe.input.handlers.B3F_TactileSwitchInputHandler;
 import com.dtheng.aufgabe.input.model.Input;
 import com.dtheng.aufgabe.jooq.JooqService;
 import com.dtheng.aufgabe.task.TaskManager;
-import com.dtheng.aufgabe.task.dto.AggregateTask;
 import com.dtheng.aufgabe.task.dto.TaskCreateRequest;
 import com.dtheng.aufgabe.task.model.Task;
 import com.google.inject.Guice;
@@ -21,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -53,7 +51,7 @@ public class InputManagerTest {
 
         TaskCreateRequest createRequest = new TaskCreateRequest();
         createRequest.setDescription("test task");
-        testTask = taskManager.create(createRequest).map(AggregateTask::getTask).toBlocking().single();
+        testTask = taskManager.create(createRequest).toBlocking().single();
     }
 
     @Test

@@ -8,6 +8,7 @@ import com.dtheng.aufgabe.http.AufgabeServlet;
 import com.dtheng.aufgabe.http.util.ErrorUtil;
 import com.dtheng.aufgabe.http.util.ResponseUtil;
 import com.dtheng.aufgabe.task.TaskManager;
+import com.dtheng.aufgabe.task.model.Task;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
@@ -58,8 +59,8 @@ public class ConfigApi {
                 })
                 .map(InputsResponse::getInputs)
                 .flatMap(Observable::from)
-                .concatMap(input -> taskManager.get(input.getTaskId())
-                    .map(task -> task.getTask().getDescription()));
+                .concatMap(input -> taskManager.get(input.getTaskId()))
+                .map(Task::getDescription);
         }
     }
 }
