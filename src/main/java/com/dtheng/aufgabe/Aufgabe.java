@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe;
 
+import com.dtheng.aufgabe.device.DeviceApi;
 import com.dtheng.aufgabe.input.InputApi;
 import com.dtheng.aufgabe.config.ConfigApi;
 import com.dtheng.aufgabe.config.ConfigManager;
@@ -72,8 +73,12 @@ public class Aufgabe {
                 .flatMap(Void -> configManager.getConfig())
                 .flatMap(config -> {
 
+                    startUpMetaData.put("port", config.getHttpPort());
+
                     Map<String, Class<? extends Servlet>> routes = new HashMap<>();
                     routes.put("/", AufgabeServlet.class);
+
+                    // Aufgabe api
                     routes.put("/entries", EntryApi.Entries.class);
                     routes.put("/entry/*", EntryApi.GetEntry.class);
                     routes.put("/task", TaskApi.CreateTask.class);
@@ -84,15 +89,19 @@ public class Aufgabe {
                     routes.put("/inputs", InputApi.Inputs.class);
                     routes.put("/inputFromId/*", InputApi.GetInput.class);
                     routes.put("/removeInput/*", InputApi.RemoveInput.class);
+                    routes.put("/deviceId", DeviceApi.CreateCreate.class);
+                    routes.put("/devices", DeviceApi.Devices.class);
+                    routes.put("/deviceFromId/*", DeviceApi.GetDevice.class);
 
+                    // Info api
                     routes.put("/config", ConfigApi.InputConfig.class);
                     routes.put("/stats", StatsApi.Default.class);
 
+                    // Sync api
                     routes.put("/sync/task", SyncApi.SyncTask.class);
                     routes.put("/sync/entry", SyncApi.SyncEntry.class);
                     routes.put("/sync/input", SyncApi.SyncInput.class);
-
-                    startUpMetaData.put("port", config.getHttpPort());
+                    routes.put("/sync/deviceId", SyncApi.SyncDevice.class);
 
                     return startServices()
                         .reduce(startUpMetaData, (aggregateMetaDta, newMetaData) -> {

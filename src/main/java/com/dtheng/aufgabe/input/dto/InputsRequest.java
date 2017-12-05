@@ -17,7 +17,7 @@ public class InputsRequest {
     private int offset = 0;
     private int limit = 10;
     private Optional<String> taskId = Optional.empty();
-    private Optional<String> device = Optional.empty();
+    private Optional<String> deviceId = Optional.empty();
     private Optional<String> ioPin = Optional.empty();
     private Optional<String> orderBy = Optional.empty();
     private Optional<String> orderDirection = Optional.empty();

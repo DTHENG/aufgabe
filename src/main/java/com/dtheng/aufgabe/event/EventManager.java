@@ -1,5 +1,6 @@
 package com.dtheng.aufgabe.event;
 
+import com.dtheng.aufgabe.device.event.DeviceCreatedEvent;
 import com.dtheng.aufgabe.input.event.InputCreatedEvent;
 import com.dtheng.aufgabe.task.event.TaskCreatedEvent;
 import com.dtheng.aufgabe.task.event.TaskUpdatedEvent;
@@ -21,7 +22,9 @@ public interface EventManager {
 
     Event<TaskCreatedEvent> getTaskCreated();
 
-    Event<TaskUpdatedEvent> getTaskUpdatedEvent();
+    Event<TaskUpdatedEvent> getTaskUpdated();
+
+    Event<DeviceCreatedEvent> getDeviceCreated();
 
     Event<B3F_TactileSwitchInputPressedEvent> getB3F_TactileSwitchInputPressed();
 
