@@ -44,3 +44,13 @@ CREATE TABLE device (
     syncedAt TIMESTAMP NULL,
     PRIMARY KEY(id)
 );
+
+CREATE TABLE output (
+    id VARCHAR(128) NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deviceId VARCHAR(128) NOT NULL,
+    taskId VARCHAR(128) NOT NULL,
+    removedAt TIMESTAMP NULL,
+    handler VARCHAR(128) NOT NULL,
+    PRIMARY KEY(id)
+);

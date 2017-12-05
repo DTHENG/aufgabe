@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.bonusly;
+package com.dtheng.aufgabe.output.bonusly;
 
 import com.dtheng.aufgabe.AufgabeModule;
 import com.dtheng.aufgabe.config.ConfigManager;

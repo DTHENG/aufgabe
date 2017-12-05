@@ -1,20 +1,16 @@
-package com.dtheng.aufgabe.bonusly;
+package com.dtheng.aufgabe.output.bonusly;
 
 import com.dtheng.aufgabe.AufgabeService;
-import com.dtheng.aufgabe.bonusly.dto.BonuslyRequest;
-import com.dtheng.aufgabe.bonusly.dto.BonuslyResponse;
+import com.dtheng.aufgabe.output.bonusly.dto.BonuslyRequest;
 import com.dtheng.aufgabe.config.ConfigManager;
-import com.dtheng.aufgabe.config.model.AufgabeConfig;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
 import rx.Observable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Daniel Thengvall <fender5289@gmail.com>

@@ -1,8 +1,8 @@
 package com.dtheng.aufgabe.task;
 
 import com.dtheng.aufgabe.AufgabeService;
-import com.dtheng.aufgabe.bonusly.BonuslyService;
-import com.dtheng.aufgabe.bonusly.dto.BonuslyResponse;
+import com.dtheng.aufgabe.output.bonusly.BonuslyService;
+import com.dtheng.aufgabe.output.bonusly.dto.BonuslyResponse;
 import com.dtheng.aufgabe.config.ConfigManager;
 import com.dtheng.aufgabe.event.EventManager;
 import com.dtheng.aufgabe.taskentry.TaskEntryManager;

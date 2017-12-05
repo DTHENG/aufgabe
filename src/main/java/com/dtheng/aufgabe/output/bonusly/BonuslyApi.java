@@ -1,7 +1,7 @@
-package com.dtheng.aufgabe.bonusly;
+package com.dtheng.aufgabe.output.bonusly;
 
-import com.dtheng.aufgabe.bonusly.dto.BonuslyRequest;
-import com.dtheng.aufgabe.bonusly.dto.BonuslyResponse;
+import com.dtheng.aufgabe.output.bonusly.dto.BonuslyRequest;
+import com.dtheng.aufgabe.output.bonusly.dto.BonuslyResponse;
 import retrofit.http.*;
 import rx.Observable;
 

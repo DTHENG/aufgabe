@@ -1,4 +1,4 @@
-package com.dtheng.aufgabe.bonusly.dto;
+package com.dtheng.aufgabe.output.bonusly.dto;
 
 import lombok.*;
 
