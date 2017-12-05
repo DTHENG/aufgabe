@@ -16,7 +16,6 @@ import rx.Observable;
  */
 @Slf4j
 @NoArgsConstructor
-@Singleton
 public class GP2Y0A21YK0F_IrDistanceSensorInputHandler implements InputHandler {
 
 	private RaspberryPiManager raspberryPiManager;
